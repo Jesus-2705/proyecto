@@ -1,8 +1,7 @@
 // npx expo start --tunnel 
 // npx expo start --dev-client
 // npx expo start --dev-client --tunnel -c
-// jesussagarnaga2705@gmail.com
-// Dragonnegro123
+
 import { Text, View, Button, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform} from "react-native";
 import * as Notifications from "expo-notifications";
 Notifications.setNotificationHandler({
