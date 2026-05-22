@@ -2,7 +2,8 @@
 // npx expo start --dev-client
 // npx expo start --dev-client --tunnel -c
 
-import { Text, View, Button, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform} from "react-native";
+import { Text, View, Button, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, Pressable} from "react-native";
+import { styles } from './themeStyles';
 import * as Notifications from "expo-notifications";
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -245,34 +246,22 @@ return (
   behavior={Platform.OS === "ios" ? "padding" : "height"}
   >
   <View
-    style={{
-      flex: 1,
-      justifyContent: "center",
-       alignItems: "center",
-     }}
-    >
-{screen === "home" && (
+    style={styles.pantallaprincipal}>
+    {screen === "home" && (
     <>
-<TouchableOpacity
-    style={{
-      width: "90%",
-      backgroundColor: "#d9d9d9",
-      padding: 25,
-      borderRadius: 15,
-      marginBottom: 20,
-      alignItems: "center"
-    }}
+<Pressable
+    style={({pressed}) => [
+      styles.btnCrearCuenta,
+      pressed && styles.btnCrearCuentaPressed
+    ]}
     onPress={() => setScreen("register")}
   >
     <Text
-      style={{
-        fontSize: 20,
-        fontWeight: "bold"
-      }}
+      style={styles.btnCrearCuentaText}
     >
       Crear cuenta
     </Text>
-  </TouchableOpacity>
+  </Pressable>
 
 <TouchableOpacity
     style={{
