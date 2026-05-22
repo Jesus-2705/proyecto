@@ -22,10 +22,10 @@ btnCrearCuenta: {
     alignItems: "center",
 },
 btnCrearCuentaPressed: {
-    backgroundColor: colores.botonHover, // Color "Hover" (un gris más oscuro cuando se presiona)
-    transform: [{ scale: 0.98 }], // Un mini efecto de hundimiento para que se sienta más real
+    backgroundColor: colores.botonHover, 
+    transform: [{ scale: 0.98 }], 
 },
-// TEXTO: Dentro de Crear Cuenta
+
 btnCrearCuentaText: {
     fontSize: 20,
     fontWeight: "bold",
