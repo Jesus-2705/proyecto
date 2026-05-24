@@ -2,8 +2,10 @@
 // npx expo start --dev-client
 // npx expo start --dev-client --tunnel -c
 
-import { Text, View, Button, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, Pressable} from "react-native";
+import { Text, View, Button, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, Pressable, StyleSheet,ScrollView,Alert} from "react-native";
 import { styles } from './themeStyles';
+import React from 'react'; 
+import {MaterialCommunityIcons} from '@expo/vector-icons';
 import * as Notifications from "expo-notifications";
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -15,12 +17,13 @@ Notifications.setNotificationHandler({
   })
 });
 import { auth,db } from '../firebase/firebase.js';
-import { doc, getDoc, setDoc, collection, addDoc,} from "firebase/firestore";
+import { doc, getDoc, setDoc, collection, addDoc, updateDoc,} from "firebase/firestore";
 import { FirebaseError } from 'firebase/app';
 import { useState, useEffect } from "react";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, User } from "firebase/auth";
 export default function Index() {
    const [screen, setScreen] = useState("home");
+   const [racha, setRacha] = useState(0);
    const [nombre, setNombre] = useState("");
    const [email, setEmail] = useState("");
    const [password, setPassword] = useState("")
@@ -56,6 +59,7 @@ useEffect(() => {
         setFechaNacimiento(data.fechaNacimiento || "");
         setTipoSangre(data.tipoSangre || "");
         setTelefonoEmergencia(data.telefonoEmergencia || "");
+        setRacha(data.rachaActual || 0);
         loadRecordatorios(user);
       }
     } else {
@@ -64,6 +68,60 @@ useEffect(() => {
   });
   return unsubscribe;
 }, []);
+const finalizarTerapia = async () => {
+  try {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const ref = doc(db, "usuarios", user.uid);
+    const snap = await getDoc(ref);
+
+    const ahora = new Date();
+    const hoy = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}-${String(ahora.getDate()).padStart(2, '0')}`;
+
+    const ayerDate = new Date();
+    ayerDate.setDate(ayerDate.getDate() - 1);
+    const ayer = `${ayerDate.getFullYear()}-${String(ayerDate.getMonth() + 1).padStart(2, '0')}-${String(ayerDate.getDate()).padStart(2, '0')}`;
+
+    let nuevaRacha = 0;
+    let recordRacha = 0;
+    let ultimouso = "";
+
+    if (!snap.exists()) {
+      nuevaRacha = 1;
+      recordRacha = 1;
+    } else {
+      const data = snap.data();
+      nuevaRacha = data.rachaActual || 0;
+      recordRacha = data.recordRacha || 0;
+      ultimouso = data.ultimoUso || "";
+
+      if (ultimouso === hoy) {
+        alert("Ya registraste tu terapia el día de hoy.");
+        return;
+      }
+
+      if (ultimouso === ayer) {
+        nuevaRacha += 1;
+      } else {
+        nuevaRacha = 1;
+      }
+    }
+
+    if (nuevaRacha > recordRacha) recordRacha = nuevaRacha;
+    await setDoc(ref, {
+      rachaActual: nuevaRacha,
+      recordRacha: recordRacha,
+      ultimoUso: hoy
+    }, { merge: true });
+
+    setRacha(nuevaRacha); 
+    alert(`¡Terapia finalizada! Racha actual: ${nuevaRacha}`);
+
+  } catch (error) {
+    console.log("Error en finalizarTerapia:", error);
+  }
+};
 useEffect(() => {
   const initPermissions = async () => {
     await Notifications.requestPermissionsAsync();
@@ -304,6 +362,15 @@ return (
     >
       {nombre} {apellido}
     </Text>  
+    <View style={styles.tarjetaRacha}>
+      <MaterialCommunityIcons name="fire" size={35} color={racha > 0 ? "#ff5722" : "#A1A1A1" } />
+      <View style={{ marginLeft: 15 }}>
+          <Text style={styles.textoRachaValores}>{racha} días seguidos</Text>
+          <Text style={styles.textoRachaSubtitulo}> {racha > 0 ? "Ya eres todo un experto" : "Comienza tu racha hoy"}  </Text>
+        </View>
+    </View>
+    
+
     <TouchableOpacity
       style={{
         width: "90%",
@@ -567,7 +634,9 @@ return (
   </View>
 )}
 {screen === "dashboard" && (
-  <>
+  <ScrollView
+  style={{flex: 1}}
+  contentContainerStyle={{ alignItems: "center", paddingTop: 60, paddingBottom: 40 }}>
   <Text
       style={{
         fontSize: 28,
@@ -660,6 +729,15 @@ return (
     </Text>
   </TouchableOpacity>
 
+  <TouchableOpacity
+      style={styles.btnCrearCuenta}
+      onPress={finalizarTerapia}
+    >
+      <Text style={styles.btnCrearCuentaText}>
+        Finalizar terapia del día
+      </Text>
+    </TouchableOpacity>
+
     <TouchableOpacity
     style={{
       width: "90%",
@@ -680,7 +758,7 @@ return (
       Volver
     </Text>
   </TouchableOpacity>
-  </>
+  </ScrollView>
 
 )}
 {screen === "EditarDatos" && (
