@@ -16,6 +16,7 @@ Notifications.setNotificationHandler({
     shouldShowList: true,
   })
 });
+import Svg, { Circle } from "react-native-svg"; //IVAN
 import { auth,db } from '../firebase/firebase.js';
 import { doc, getDoc, setDoc, collection, addDoc, updateDoc,} from "firebase/firestore";
 import { FirebaseError } from 'firebase/app';
@@ -29,6 +30,7 @@ export default function Index() {
    const [password, setPassword] = useState("")
    const [mensaje, setMensaje] = useState("")
    const [confirmpassword, setconfirmPassword] = useState("")
+   const [presionFiltrada, setPresionFiltrada] = useState(0);//IVAN
    const [apellido, setApellido] = useState("");
   const [fechaNacimiento, setFechaNacimiento] = useState("");
   const [tipoSangre, setTipoSangre] = useState("");
@@ -151,8 +153,26 @@ useEffect(() => {
       }
     });
   }, 60000);
+  
   return () => clearInterval(interval);
 }, [hora1, hora2, hora3]);
+  
+useEffect(() => { //ESP32 IVAN
+  const interval = setInterval(async () => {
+
+    try {
+
+      const response = await fetch("http://192.168.0.8/presion");
+      const texto = await response.text();
+      console.log(texto);
+      setPresionFiltrada(Number(texto));
+    } catch (error) {
+      console.log("ESP32 no conectado", error);
+    }
+  }, 500);
+  return () => clearInterval(interval);
+}, []);
+  
 const handleRegister = async () => {
   setMensaje("");
   if (password !== confirmpassword) {
@@ -298,6 +318,52 @@ const GuardarRecordatorios = async () => {
     setScreen("dashboard");
   }, 1000);
 };
+
+const PressureGauge = ({ pressure = 0 }) => { //IVAN
+  const size = 160;
+  const strokeWidth = 14;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const clamped = Math.max(0, Math.min(pressure, 300));
+  const percent = clamped / 300;
+  const strokeDashoffset = circumference * (1 - percent);
+  return (
+    <View style={{ alignItems: "center", marginTop: 20 }}>
+      <Svg width={size} height={size}>
+        <Circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke="#e6e6e6"
+          strokeWidth={strokeWidth}
+          fill="none"
+        />
+
+        <Circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke="#2e86ff"
+          strokeWidth={strokeWidth}
+          strokeLinecap="round"
+          fill="none"
+          strokeDasharray={circumference}
+          strokeDashoffset={strokeDashoffset}
+          rotation="-90"
+          origin={`${size / 2}, ${size / 2}`}
+        />
+      </Svg>
+
+      <View style={{ position: "absolute", top: 55, alignItems: "center" }}>
+        <Text style={{ fontSize: 28, fontWeight: "bold" }}>
+          {Math.round(clamped)}
+        </Text>
+        <Text>mmHg</Text>
+      </View>
+    </View>
+  );
+};
+  
 return (
   <KeyboardAvoidingView
   style={{ flex: 1 }}
@@ -1030,22 +1096,138 @@ return (
 </Text>
     </View>
 )}
-{screen === "Presion" && (
-      <TouchableOpacity
-      style={{
-        width: "90%",
-        backgroundColor: "#d9d9d9",
-        padding: 18,
-        borderRadius: 15,
-        marginTop: 20,
-        alignItems: "center"
-      }}
-      onPress={() => setScreen("dashboard")}
-    >
-      <Text style={{ fontSize: 18, fontWeight: "bold" }}>
-        Volver
-      </Text>
-    </TouchableOpacity>
+{screen === "Presion" && ( //IVAN
+<View style={{ flex: 1, alignItems: "center", paddingTop: 20 }}>
+  
+  <PressureGauge pressure={presionFiltrada || 0} />
+
+  <TouchableOpacity
+    style={{
+      width: "90%",
+      backgroundColor: "#494b49",
+      padding: 15,
+      borderRadius: 12,
+      marginTop: 20,
+      alignItems: "center"
+    }}
+    onPress={async () => {
+      try {
+        await fetch("http://192.168.0.8/servo?angulo=0");
+      } catch (e) {
+        console.log(e);
+      }
+    }}
+  >
+    <Text style={{ color: "white", fontWeight: "bold" }}>
+      Mover a 0°
+    </Text>
+  </TouchableOpacity>
+
+  <TouchableOpacity
+    style={{
+      width: "90%",
+      backgroundColor: "#494b49",
+      padding: 15,
+      borderRadius: 12,
+      marginTop: 10,
+      alignItems: "center"
+    }}
+    onPress={async () => {
+      try {
+        await fetch("http://192.168.0.8/servo?angulo=35");
+      } catch (e) {
+        console.log(e);
+      }
+    }}
+  >
+    <Text style={{ color: "white", fontWeight: "bold" }}>
+      Mover a 35°
+    </Text>
+  </TouchableOpacity>
+
+  <TouchableOpacity
+    style={{
+      width: "90%",
+      backgroundColor: "#494b49",
+      padding: 15,
+      borderRadius: 12,
+      marginTop: 10,
+      alignItems: "center"
+    }}
+    onPress={async () => {
+      try {
+        await fetch("http://192.168.0.8/servo?angulo=70");
+      } catch (e) {
+        console.log(e);
+      }
+    }}
+  >
+    <Text style={{ color: "white", fontWeight: "bold" }}>
+      Mover a 70°
+    </Text>
+  </TouchableOpacity>
+
+  <TouchableOpacity
+  style={{
+    width: "90%",
+    backgroundColor: "#bdc9da",
+    padding: 15,
+    borderRadius: 12,
+    marginTop: 10,
+    alignItems: "center"
+  }}
+  onPress={async () => {
+    try {
+      await fetch("http://192.168.0.8/manual");
+    } catch (e) {
+      console.log(e);
+    }
+  }}
+>
+  <Text style={{ color: "white", fontWeight: "bold" }}>
+    Aplicación
+  </Text>
+</TouchableOpacity>
+
+<TouchableOpacity
+  style={{
+    width: "90%",
+    backgroundColor: "#bdc9da",
+    padding: 15,
+    borderRadius: 12,
+    marginTop: 10,
+    alignItems: "center"
+  }}
+  onPress={async () => {
+    try {
+      await fetch("http://192.168.0.8/auto");
+    } catch (e) {
+      console.log(e);
+    }
+  }}
+>
+  <Text style={{ color: "white", fontWeight: "bold" }}>
+    Controlador
+  </Text>
+</TouchableOpacity>
+
+  <TouchableOpacity
+    style={{
+      width: "90%",
+      backgroundColor: "#d9d9d9",
+      padding: 18,
+      borderRadius: 15,
+      marginTop: 30,
+      alignItems: "center"
+    }}
+    onPress={() => setScreen("dashboard")}
+  >
+    <Text style={{ fontSize: 18, fontWeight: "bold" }}>
+      Volver
+    </Text>
+  </TouchableOpacity>
+
+</View>
 )}
   </View>
  </KeyboardAvoidingView>
