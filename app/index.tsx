@@ -2,9 +2,10 @@
 // npx expo start --dev-client
 // npx expo start --dev-client --tunnel -c
 
-import { Text, View, Button, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, Pressable, StyleSheet,ScrollView,Alert} from "react-native";
+import { Text, View, Button, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, Pressable, StyleSheet,ScrollView,Alert,Linking} from "react-native";
 import { styles } from './themeStyles';
 import React from 'react'; 
+import * as Location from "expo-location";
 import {MaterialCommunityIcons} from '@expo/vector-icons';
 import * as Notifications from "expo-notifications";
 Notifications.setNotificationHandler({
@@ -319,6 +320,60 @@ const GuardarRecordatorios = async () => {
   }, 1000);
 };
 
+const enviarMensajeEmergencia = async () => {
+
+  if (!telefonoEmergencia) {
+    Alert.alert(
+      "Error",
+      "No hay teléfono de emergencia registrado"
+    );
+    return;
+  }
+
+  const { status } =
+    await Location.requestForegroundPermissionsAsync();
+
+  if (status !== "granted") {
+    Alert.alert(
+      "Permiso denegado",
+      "No se pudo acceder a la ubicación"
+    );
+    return;
+  }
+
+  const location =
+    await Location.getCurrentPositionAsync({});
+
+  const latitude = location.coords.latitude;
+  const longitude = location.coords.longitude;
+
+  const mapsLink =
+    `https://maps.google.com/?q=${latitude},${longitude}`;
+
+  const numero = "52" + telefonoEmergencia;
+
+  const mensaje =
+    ` EMERGENCIA 
+
+Necesito ayuda inmediata.
+Esto es un mensaje desde mi app MediTrack.
+
+Mi ubicación:
+${mapsLink}`;
+
+  const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`;
+
+  const supported = await Linking.canOpenURL(url);
+
+  if (supported) {
+    await Linking.openURL(url);
+  } else {
+    Alert.alert(
+      "Error",
+      "WhatsApp no está instalado"
+    );
+  }
+};
 const PressureGauge = ({ pressure = 0 }) => { //IVAN
   const size = 160;
   const strokeWidth = 14;
@@ -669,6 +724,31 @@ return (
       }}>
         Bipedestador
       </Text>
+    <TouchableOpacity
+    onPress={enviarMensajeEmergencia}
+    style={{
+      position: "absolute",
+      bottom: 30,
+      right: 20,
+      width: 70,
+      height: 70,
+      borderRadius: 35,
+      backgroundColor: "red",
+      justifyContent: "center",
+      alignItems: "center",
+      elevation: 5
+    }}
+  >
+    <Text
+      style={{
+        color: "white",
+        fontWeight: "bold",
+        fontSize: 16
+      }}
+    >
+      SOS
+    </Text>
+  </TouchableOpacity>
   <Pressable
     style={({pressed}) => [
       styles.btnCrearCuenta,
