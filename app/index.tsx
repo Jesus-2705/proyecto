@@ -1014,7 +1014,6 @@ return (
     </View>
 )}
 
-=======
 {screen === "Presion" && ( //IVAN
 <View style={{ flex: 1, alignItems: "center", paddingTop: 20 }}>
   
