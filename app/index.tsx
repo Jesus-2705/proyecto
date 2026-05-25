@@ -258,9 +258,14 @@ const handleLogin = async () => {
   }
 };
 const handleCambiarCuenta = async () => {
+  try{
   await signOut(auth);
-  setScreen("home");
+  setEmail("");
+  setPassword("");
+} catch (error) {
+  console.log("Error al cerrar sesión:", error);
 }
+};
 const handleGuardarDatos = async () => {
   setMensaje("");
 
@@ -511,7 +516,7 @@ return (
       styles.btnCambiarCuenta,
       pressed && styles.btnCambiarCuentaPressed
     ]}
-    onPress={() => setScreen("login")}
+    onPress={handleCambiarCuenta}
   >
     <Ionicons 
     name="sync-outline"
@@ -519,10 +524,9 @@ return (
     color="#253237"
     style={styles.btnIcono} />
     <Text
-      style={styles.btnTexto}
-    >
+      style={styles.btnTexto}>
         Cambiar cuenta
-      </Text>
+    </Text>
     </Pressable>
   </>
 )}
@@ -604,7 +608,7 @@ return (
       styles.btnCrearCuenta,
       pressed && styles.btnCrearCuentaPressed
     ]}
-    onPress={() => setScreen("handleRegister")}
+    onPress={handleRegister}
   >
     <Text
       style={styles.btnCrearCuentaText}
@@ -1082,7 +1086,7 @@ return (
     </View>
 )}
 
-{screen === "Presion" && ( //IVAN
+  {screen === "Presion" && ( 
 <View style={{ flex: 1, alignItems: "center", paddingTop: 20 }}>
   
   <PressureGauge pressure={presionFiltrada || 0} />

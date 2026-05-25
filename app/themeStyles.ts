@@ -172,10 +172,6 @@ textoRachaValores: {
     alignSelf: "center",
     marginTop: 15,
     elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
   },
   tarjetaTitulo: {
     fontSize: 18,
