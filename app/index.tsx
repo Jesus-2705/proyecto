@@ -321,26 +321,19 @@ return (
     </Text>
   </Pressable>
 
-<TouchableOpacity
-    style={{
-      width: "90%",
-      backgroundColor: "#d9d9d9",
-      padding: 25,
-      borderRadius: 15,
-      marginBottom: 20,
-      alignItems: "center"
-    }}
+<Pressable
+    style={({pressed}) => [
+      styles.btnCrearCuenta,
+      pressed && styles.btnCrearCuentaPressed
+    ]}
     onPress={() => setScreen("login")}
   >
     <Text
-      style={{
-        fontSize: 20,
-        fontWeight: "bold"
-      }}
+      style={styles.btnCrearCuentaText}
     >
       Iniciar sesión
     </Text>
-  </TouchableOpacity>
+  </Pressable>
      </>
       )}
 {screen === "welcome" && (
@@ -371,45 +364,32 @@ return (
     </View>
     
 
-    <TouchableOpacity
-      style={{
-        width: "90%",
-        backgroundColor: "#d9d9d9",
-        padding: 25,
-        borderRadius: 15,
-        marginBottom: 20,
-        alignItems: "center"
-      }}
-      onPress={() => setScreen("dashboard")}
+    <Pressable
+    style={({pressed}) => [
+      styles.btnCrearCuenta,
+      pressed && styles.btnCrearCuentaPressed
+    ]}
+    onPress={() => setScreen("dashboard")}
+  >
+    <Text
+      style={styles.btnCrearCuentaText}
     >
-      <Text
-        style={{
-          fontSize: 20,
-          fontWeight: "bold"
-        }}
-      >
         Entrar
       </Text>
-    </TouchableOpacity>
-    <TouchableOpacity
-      style={{
-        width: "90%",
-        backgroundColor: "#d9d9d9",
-        padding: 25,
-        borderRadius: 15,
-        alignItems: "center"
-      }}
-      onPress={handleCambiarCuenta}
+    </Pressable>
+    <Pressable
+    style={({pressed}) => [
+      styles.btnCrearCuenta,
+      pressed && styles.btnCrearCuentaPressed
+    ]}
+    onPress={() => setScreen("login")}
+  >
+    <Text
+      style={styles.btnCrearCuentaText}
     >
-      <Text
-        style={{
-          fontSize: 20,
-          fontWeight: "bold"
-        }}
-      >
         Cambiar de cuenta
       </Text>
-    </TouchableOpacity>
+    </Pressable>
   </>
 )}
 {screen === "register" && (
@@ -491,47 +471,33 @@ return (
       }}
     />
 
-    <TouchableOpacity
-      style={{
-        width: "90%",
-        backgroundColor: "#d9d9d9",
-        padding: 25,
-        borderRadius: 15,
-        marginTop: 20,
-        alignItems: "center"
-      }}
-      onPress={handleRegister}
+    <Pressable
+    style={({pressed}) => [
+      styles.btnCrearCuenta,
+      pressed && styles.btnCrearCuentaPressed
+    ]}
+    onPress={() => setScreen("handleRegister")}
+  >
+    <Text
+      style={styles.btnCrearCuentaText}
     >
-      <Text
-        style={{
-          fontSize: 20,
-          fontWeight: "bold"
-        }}
-      >
         Registrarse
       </Text>
-    </TouchableOpacity>
+    </Pressable>
 
-    <TouchableOpacity
-      style={{
-        width: "90%",
-        backgroundColor: "#d9d9d9",
-        padding: 20,
-        borderRadius: 15,
-        marginTop: 15,
-        alignItems: "center"
-      }}
-      onPress={() => setScreen("home")}
+    <Pressable
+    style={({pressed}) => [
+      styles.btnCrearCuenta,
+      pressed && styles.btnCrearCuentaPressed
+    ]}
+    onPress={() => setScreen("home")}
+  >
+    <Text
+      style={styles.btnCrearCuentaText}
     >
-      <Text
-        style={{
-          fontSize: 18,
-          fontWeight: "bold"
-        }}
-      >
         Regresar
       </Text>
-    </TouchableOpacity>
+    </Pressable>
 
     <Text style={{ marginTop: 15 }}>
       {mensaje}
@@ -585,15 +551,11 @@ return (
       }}
     />
 
-    <TouchableOpacity
-      style={{
-        width: "90%",
-        backgroundColor: "#d9d9d9",
-        padding: 25,
-        borderRadius: 15,
-        marginTop: 20,
-        alignItems: "center"
-      }}
+    <Pressable
+      style={({pressed}) => [
+      styles.btnCrearCuenta,
+      pressed && styles.btnCrearCuentaPressed
+    ]}
       onPress={handleLogin}
     >
       <Text
@@ -604,17 +566,13 @@ return (
       >
         Entrar
       </Text>
-    </TouchableOpacity>
+    </Pressable>
 
-    <TouchableOpacity
-      style={{
-        width: "90%",
-        backgroundColor: "#d9d9d9",
-        padding: 20,
-        borderRadius: 15,
-        marginTop: 15,
-        alignItems: "center"
-      }}
+    <Pressable
+      style={({pressed}) => [
+      styles.btnCrearCuenta,
+      pressed && styles.btnCrearCuentaPressed
+    ]}
       onPress={() => setScreen("home")}
     >
       <Text
@@ -625,7 +583,7 @@ return (
       >
         Regresar
       </Text>
-    </TouchableOpacity>
+    </Pressable>
 
     <Text style={{ marginTop: 15 }}>
       {mensaje}
@@ -645,15 +603,11 @@ return (
       }}>
         Bipedestador
       </Text>
-  <TouchableOpacity
-    style={{
-      width: "90%",
-      backgroundColor: "#d9d9d9",
-      padding: 25,
-      borderRadius: 15,
-      marginBottom: 20,
-      alignItems: "center"
-    }}
+  <Pressable
+    style={({pressed}) => [
+      styles.btnCrearCuenta,
+      pressed && styles.btnCrearCuentaPressed
+    ]}
     onPress={() => setScreen("VerDatos")}
   >
     <Text
@@ -664,17 +618,13 @@ return (
     >
       Ver datos generales
     </Text>
-  </TouchableOpacity>
+  </Pressable>
 
-  <TouchableOpacity
-    style={{
-      width: "90%",
-      backgroundColor: "#d9d9d9",
-      padding: 25,
-      borderRadius: 15,
-      marginBottom: 20,
-      alignItems: "center"
-    }}
+  <Pressable
+    style={({pressed}) => [
+      styles.btnCrearCuenta,
+      pressed && styles.btnCrearCuentaPressed
+    ]}
     onPress={() => setScreen("EditarDatos")}
   >
     <Text
@@ -685,17 +635,13 @@ return (
     >
       Editar datos generales
     </Text>
-  </TouchableOpacity>
+  </Pressable>
 
-  <TouchableOpacity
-    style={{
-      width: "90%",
-      backgroundColor: "#d9d9d9",
-      padding: 25,
-      borderRadius: 15,
-      marginBottom: 20,
-      alignItems: "center"
-    }}
+  <Pressable
+    style={({pressed}) => [
+      styles.btnCrearCuenta,
+      pressed && styles.btnCrearCuentaPressed
+    ]}
     onPress={() => setScreen("Recordatorios")}
   >
     <Text
@@ -706,17 +652,13 @@ return (
     >
       Recordatorios
     </Text>
-  </TouchableOpacity>
+  </Pressable>
 
-  <TouchableOpacity
-    style={{
-      width: "90%",
-      backgroundColor: "#d9d9d9",
-      padding: 25,
-      borderRadius: 15,
-      marginBottom: 20,
-      alignItems: "center"
-    }}
+  <Pressable
+   style={({pressed}) => [
+      styles.btnCrearCuenta,
+      pressed && styles.btnCrearCuentaPressed
+    ]}
     onPress={() => setScreen("Presion")}
   >
     <Text
@@ -727,26 +669,25 @@ return (
     >
       Presión arterial
     </Text>
-  </TouchableOpacity>
+  </Pressable>
 
-  <TouchableOpacity
-      style={styles.btnCrearCuenta}
+  <Pressable
+      style={({pressed}) => [
+      styles.btnCrearCuenta,
+      pressed && styles.btnCrearCuentaPressed
+    ]}
       onPress={finalizarTerapia}
     >
       <Text style={styles.btnCrearCuentaText}>
         Finalizar terapia del día
       </Text>
-    </TouchableOpacity>
+    </Pressable>
 
-    <TouchableOpacity
-    style={{
-      width: "90%",
-      backgroundColor: "#d9d9d9",
-      padding: 25,
-      borderRadius: 15,
-      marginBottom: 20,
-      alignItems: "center"
-    }}
+    <Pressable
+    style={({pressed}) => [
+      styles.btnCrearCuenta,
+      pressed && styles.btnCrearCuentaPressed
+    ]}
     onPress={() => setScreen("welcome")}
   >
     <Text
@@ -757,7 +698,7 @@ return (
     >
       Volver
     </Text>
-  </TouchableOpacity>
+  </Pressable>
   </ScrollView>
 
 )}
@@ -869,16 +810,11 @@ return (
       backgroundColor: "white"
     }}
     />
-    <TouchableOpacity
-  style={{
-    width: "90%",
-    backgroundColor: "#d9d9d9",
-    padding: 25,
-    borderRadius: 15,
-    marginBottom: 20,
-    alignItems: "center",
-    marginTop: 20
-  }}
+    <Pressable
+  style={({pressed}) => [
+        styles.btnCrearCuenta,
+        pressed && styles.btnCrearCuentaPressed
+      ]}
   onPress={handleGuardarDatos}
 >
   <Text
@@ -889,22 +825,18 @@ return (
   >
     Guardar datos
   </Text>
-    </TouchableOpacity>
-    <TouchableOpacity
-      style={{
-        width: "90%",
-        backgroundColor: "#d9d9d9",
-        padding: 18,
-        borderRadius: 15,
-        marginTop: 20,
-        alignItems: "center"
-      }}
+    </Pressable>
+    <Pressable
+     style={({pressed}) => [
+      styles.btnCrearCuenta,
+      pressed && styles.btnCrearCuentaPressed
+    ]}
       onPress={() => setScreen("dashboard")}
     >
       <Text style={{ fontSize: 18, fontWeight: "bold" }}>
         Volver
       </Text>
-    </TouchableOpacity>
+    </Pressable>
     <Text style={{ marginTop: 10 }}>
   {mensaje}
 </Text>
@@ -921,15 +853,11 @@ return (
     <Text>Tipo de sangre: {tipoSangre}</Text>
     <Text>Emergencia: {telefonoEmergencia}</Text>
 
-<TouchableOpacity
-    style={{
-      width: "90%",
-      backgroundColor: "#d9d9d9",
-      padding: 25,
-      borderRadius: 15,
-      marginBottom: 20,
-      alignItems: "center"
-    }}
+<Pressable
+    style={({pressed}) => [
+      styles.btnCrearCuenta,
+      pressed && styles.btnCrearCuentaPressed
+    ]}
     onPress={() => setScreen("EditarDatos")}
   >
     <Text
@@ -940,17 +868,13 @@ return (
     >
       Editar datos
     </Text>
-  </TouchableOpacity>
+  </Pressable>
 
-    <TouchableOpacity
-    style={{
-      width: "90%",
-      backgroundColor: "#d9d9d9",
-      padding: 25,
-      borderRadius: 15,
-      marginBottom: 20,
-      alignItems: "center"
-    }}
+    <Pressable
+    style={({pressed}) => [
+      styles.btnCrearCuenta,
+      pressed && styles.btnCrearCuentaPressed
+    ]}
     onPress={() => setScreen("dashboard")}
   >
     <Text
@@ -961,7 +885,7 @@ return (
     >
       Volver
     </Text>
-  </TouchableOpacity>
+  </Pressable>
   </>
 )}
 {screen === "Recordatorios" && (
@@ -990,15 +914,11 @@ return (
       onChangeText={setHora3}
       style={{ borderWidth: 1, width: "100%", marginTop: 10, padding: 8,  color: "black", backgroundColor:"white"}}
     /> 
-  <TouchableOpacity
-    style={{
-      width: "90%",
-      backgroundColor: "#d9d9d9",
-      padding: 25,
-      borderRadius: 15,
-      marginBottom: 20,
-      alignItems: "center"
-    }}
+  <Pressable
+    style={({pressed}) => [
+      styles.btnCrearCuenta,
+      pressed && styles.btnCrearCuentaPressed
+    ]}
     onPress={GuardarRecordatorios}
   >
     <Text
@@ -1009,43 +929,36 @@ return (
     >
       Guardar recordatorios
     </Text>
-  </TouchableOpacity>
-  <TouchableOpacity
-  style={{
-    width: "90%",
-    backgroundColor: "#d9d9d9",
-    padding: 20,
-    borderRadius: 15,
-    marginTop: 10,
-    alignItems: "center"
-  }}
+  </Pressable>
+
+  <Pressable
+  style={({pressed}) => [
+      styles.btnCrearCuenta,
+      pressed && styles.btnCrearCuentaPressed
+    ]}
   onPress={() => setScreen("dashboard")}
 >
   <Text style={{ fontSize: 18, fontWeight: "bold" }}>
     Volver 
   </Text>
-</TouchableOpacity>
+</Pressable>
   <Text style={{ marginTop: 10 }}>
   {mensaje}
 </Text>
     </View>
 )}
 {screen === "Presion" && (
-      <TouchableOpacity
-      style={{
-        width: "90%",
-        backgroundColor: "#d9d9d9",
-        padding: 18,
-        borderRadius: 15,
-        marginTop: 20,
-        alignItems: "center"
-      }}
+      <Pressable
+      style={({pressed}) => [
+      styles.btnCrearCuenta,
+      pressed && styles.btnCrearCuentaPressed
+    ]}
       onPress={() => setScreen("dashboard")}
     >
       <Text style={{ fontSize: 18, fontWeight: "bold" }}>
         Volver
       </Text>
-    </TouchableOpacity>
+    </Pressable>
 )}
   </View>
  </KeyboardAvoidingView>
