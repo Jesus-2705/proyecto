@@ -164,7 +164,7 @@ useEffect(() => { //ESP32 IVAN
 
     try {
 
-      const response = await fetch("http://192.168.0.8/presion");
+      const response = await fetch("http://172.20.10.7/presion");
       const texto = await response.text();
       console.log(texto);
       setPresionFiltrada(Number(texto));
@@ -1095,7 +1095,7 @@ return (
     style={styles.btnPresion}
     onPress={async () => {
       try {
-        await fetch("http://192.168.0.8/servo?angulo=0");
+        await fetch("http://172.20.10.7/servo?angulo=0");
       } catch (e) {
         console.log(e);
       }
@@ -1110,7 +1110,7 @@ return (
     style={styles.btnPresion}
     onPress={async () => {
       try {
-        await fetch("http://192.168.0.8/servo?angulo=35");
+        await fetch("http://172.20.10.7/servo?angulo=35");
       } catch (e) {
         console.log(e);
       }
@@ -1125,7 +1125,7 @@ return (
     style={styles.btnPresion}
     onPress={async () => {
       try {
-        await fetch("http://192.168.0.8/servo?angulo=70");
+        await fetch("http://172.20.10.7/servo?angulo=70");
       } catch (e) {
         console.log(e);
       }
@@ -1140,7 +1140,7 @@ return (
   style={styles.btnPresion1}
   onPress={async () => {
     try {
-      await fetch("http://192.168.0.8/manual");
+      await fetch("http://172.20.10.7/manual");
     } catch (e) {
       console.log(e);
     }
@@ -1155,7 +1155,7 @@ return (
   style={styles.btnPresion1}
   onPress={async () => {
     try {
-      await fetch("http://192.168.0.8/auto");
+      await fetch("http://172.20.10.7/auto");
     } catch (e) {
       console.log(e);
     }
