@@ -1,12 +1,80 @@
 import { StyleSheet } from 'react-native';
 
 const colores = {
-    fondo: "#ffffff",
-    boton: "#8fb3e2",
-    botonHover: "#4073b6",
+    fondo: "#C6C7BD",
+    boton: "#9DB4C0",
+    botonHover: "#677D8B",
     textoBoton: "#ffffff",
 };
 export const styles = StyleSheet.create({
+inputContenedor: {
+    flexDirection: 'row',          
+    alignItems: 'center',         
+    backgroundColor: '#CEDOCE',     
+    borderWidth: 1,
+    borderColor: '#5C6B73',       
+    borderRadius: 50,             
+    width: '90%',
+    paddingHorizontal: 20,         
+    paddingVertical: 4,            
+    marginTop: 15,
+    alignSelf: 'center',
+  },
+  inputIcono: {
+    marginRight: 12,                
+  },
+  inputTexto: {
+    flex: 1,                      
+    paddingVertical: 12,           
+    fontSize: 16,
+    color: '#253237',             
+  },
+btnEntrar: {
+    flexDirection: 'row',      
+    alignItems: 'center',       
+    justifyContent: 'center',    
+    backgroundColor: '#9DB4C0',  
+    borderRadius: 50,           
+    paddingVertical: 15,         
+    paddingHorizontal: 20,       
+    marginVertical: 10,         
+    width: '90%',             
+    alignSelf: 'center',         
+    elevation: 3,               
+    shadowColor: '#000',        
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+  },
+btnEntrarPressed: {
+opacity: 0.8,
+    transform: [{ scale: 0.98 }],
+  },
+btnIcono: {
+    marginRight: 15,            
+  },
+
+btnTexto: {
+    color: '#000',              
+    fontSize: 18,               
+    fontWeight: 'bold',         
+  },
+btnCambiarCuenta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#9DB4C0',  
+    borderRadius: 50,           
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    width: '90%',
+    alignSelf: 'center',
+    marginVertical: 10,
+  },
+btnCambiarCuentaPressed: {
+    opacity: 0.85,
+    transform: [{ scale: 0.98 }],
+    },
 pantallaprincipal: {
     flex: 1,
     backgroundColor: colores.fondo,
@@ -14,12 +82,16 @@ pantallaprincipal: {
     justifyContent: "center",
 },
 btnCrearCuenta: {
-    width: "90%",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: colores.boton,
-    padding: 25,
-    borderRadius: 15,
-    marginBottom: 20,
-    alignItems: "center",
+    paddingVertical: 18,         
+    paddingHorizontal: 24,               
+    width: '90%',  
+    borderRadius: 50,
+    alignSelf: 'center',
+    marginTop: 15,
 },
 btnCrearCuentaPressed: {
     backgroundColor: colores.botonHover, 
@@ -27,16 +99,45 @@ btnCrearCuentaPressed: {
 },
 
 btnCrearCuentaText: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "bold",
+
     },
+btndashboard: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colores.boton,
+    paddingVertical: 18,         
+    paddingHorizontal: 24,               
+    width: '100%',  
+    borderRadius: 50,
+    alignSelf: 'center',
+    marginTop: 15,
+},
+btndashboardPressed: {
+    backgroundColor: colores.botonHover, 
+    transform: [{ scale: 0.98 }], 
+},
+btndashboardText: {
+    fontSize: 18,
+    fontWeight: "bold",
+    alignSelf: 'center',
+
+    },
+btnemergencia: {
+    padding: 20, 
+    borderRadius: 50,
+    backgroundColor: "red",
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 5,},
 
 tarjetaRacha: {
    flexDirection: 'row',
-    backgroundColor: '#161F28', 
+    backgroundColor: '#253237', 
     width: '90%',
     padding: 20,
-    borderRadius: 25, 
+    borderRadius: 50, 
     alignItems: 'center',
     marginBottom: 25,
     borderWidth: 1,
@@ -63,4 +164,72 @@ textoRachaValores: {
     alignSelf: 'flex-start', 
     marginLeft: '5%',
   },
+  tarjetaContenedor: {
+    backgroundColor: "E6E8E6",
+    borderRadius: 20,
+    padding: 15,
+    width: "90%",
+    alignSelf: "center",
+    marginTop: 15,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+  },
+  tarjetaTitulo: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#253237',
+    marginBottom: 10,
+  },
+  lineaDivisoria: {
+    height: 1,
+    backgroundColor: '#CED0CE',
+    marginBottom: 15,
+    },
+datoRenglon: {
+    flexDirection: 'row',         
+    alignItems: 'center',          
+    paddingVertical: 8,           
+  },
+  datoIcono: {
+    marginRight: 10,              
+  },
+  datoEtiqueta: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#5C6B73',              
+    marginRight: 6,               
+  },
+  datoValor: {
+    fontSize: 16,
+    color: '#253237',              
+    fontWeight: '400',
+    flex: 1,                       
+  },
+  btnPresion: {
+    width: "90%",
+    backgroundColor: "#253237",
+    padding: 15,
+    borderRadius: 12,
+    marginTop: 20,
+    alignItems: "center"
+  },
+  btnPresion1: {
+    width: "90%",
+    backgroundColor: "#5C6B73",
+    padding: 15,
+    borderRadius: 12,
+    marginTop: 20,
+    alignItems: "center"
+  },
+  btnVolverPresion: {
+    width: "90%",
+    backgroundColor: "#9DB4C0",
+    padding: 15,
+    borderRadius: 12,
+    marginTop: 20,
+    alignItems: "center"
+    },
   });

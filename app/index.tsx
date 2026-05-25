@@ -6,6 +6,7 @@ import { Text, View, Button, TextInput, TouchableOpacity, KeyboardAvoidingView, 
 import { styles } from './themeStyles';
 import React from 'react'; 
 import * as Location from "expo-location";
+import {Ionicons} from '@expo/vector-icons';
 import {MaterialCommunityIcons} from '@expo/vector-icons';
 import * as Notifications from "expo-notifications";
 Notifications.setNotificationHandler({
@@ -119,7 +120,7 @@ const finalizarTerapia = async () => {
     }, { merge: true });
 
     setRacha(nuevaRacha); 
-    alert(`¡Terapia finalizada! Racha actual: ${nuevaRacha}`);
+    alert(`Terapia finalizada! Racha actual: ${nuevaRacha}`);
 
   } catch (error) {
     console.log("Error en finalizarTerapia:", error);
@@ -358,7 +359,7 @@ const enviarMensajeEmergencia = async () => {
 Necesito ayuda inmediata.
 Esto es un mensaje desde mi app MediTrack.
 
-Mi ubicación:
+Mi ubicación es:
 ${mapsLink}`;
 
   const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`;
@@ -487,28 +488,40 @@ return (
 
     <Pressable
     style={({pressed}) => [
-      styles.btnCrearCuenta,
-      pressed && styles.btnCrearCuentaPressed
-    ]}
+      styles.btnEntrar,
+      pressed && styles.btnEntrarPressed]}
     onPress={() => setScreen("dashboard")}
   >
+  
+    <Ionicons 
+    name="person-outline"     
+    size={24}                 
+    color="#253237"           
+    style={styles.btnIcono}   
+  />
     <Text
-      style={styles.btnCrearCuentaText}
+      style={styles.btnTexto}
     >
         Entrar
       </Text>
     </Pressable>
+
     <Pressable
     style={({pressed}) => [
-      styles.btnCrearCuenta,
-      pressed && styles.btnCrearCuentaPressed
+      styles.btnCambiarCuenta,
+      pressed && styles.btnCambiarCuentaPressed
     ]}
     onPress={() => setScreen("login")}
   >
+    <Ionicons 
+    name="sync-outline"
+    size={24}
+    color="#253237"
+    style={styles.btnIcono} />
     <Text
-      style={styles.btnCrearCuentaText}
+      style={styles.btnTexto}
     >
-        Cambiar de cuenta
+        Cambiar cuenta
       </Text>
     </Pressable>
   </>
@@ -525,72 +538,66 @@ return (
     >
       Crear cuenta
     </Text>
-
+    
+    <View style={styles.inputContenedor}>
     <TextInput
       placeholder="Nombre"
       placeholderTextColor="gray"
       value={nombre}
       onChangeText={setNombre}
-      style={{
-        borderWidth: 1,
-        width: "90%",
-        marginTop: 10,
-        padding: 15,
-        borderRadius: 10,
-        color: "black",
-        backgroundColor: "white"
-      }}
+      style={styles.inputTexto}
     />
+    </View>
 
+    <View style={styles.inputContenedor}>
+      <Ionicons
+        name="mail-outline"
+        size={22}
+        color="#5C6B73"
+        style={styles.inputIcono}
+      />
     <TextInput
       placeholder="Correo"
       placeholderTextColor="gray"
       value={email}
       onChangeText={setEmail}
-      style={{
-        borderWidth: 1,
-        width: "90%",
-        marginTop: 10,
-        padding: 15,
-        borderRadius: 10,
-        color: "black",
-        backgroundColor: "white"
-      }}
+      style={styles.inputTexto}
     />
+    </View>
 
+    <View style={styles.inputContenedor}>
+      <Ionicons
+      name="key-outline"
+      size={22}
+      color="#5C6B73"
+      style={styles.inputIcono}
+    />
     <TextInput
       placeholder="Contraseña"
       placeholderTextColor="gray"
       value={password}
       onChangeText={setPassword}
       secureTextEntry={true}
-      style={{
-        borderWidth: 1,
-        width: "90%",
-        marginTop: 10,
-        padding: 15,
-        borderRadius: 10,
-        color: "black",
-        backgroundColor: "white"
-      }}
+      style={styles.inputTexto}
     />
+    </View>
 
+    <View style={styles.inputContenedor}>
+      <Ionicons
+      name="key-outline"
+      size={22}
+      color="#5C6B73"
+      style={styles.inputIcono}
+    />
     <TextInput
       placeholder="Confirmar contraseña"
       placeholderTextColor="gray"
       value={confirmpassword}
       onChangeText={setconfirmPassword}
       secureTextEntry={true}
-      style={{
-        borderWidth: 1,
-        width: "90%",
-        marginTop: 10,
-        padding: 15,
-        borderRadius: 10,
-        color: "black",
-        backgroundColor: "white"
-      }}
+      style={styles.inputTexto}
     />
+    </View>
 
     <Pressable
     style={({pressed}) => [
@@ -638,39 +645,38 @@ return (
     >
       Iniciar sesión
     </Text>
-
+    <View style={styles.inputContenedor}>
+    <Ionicons
+      name="mail-outline"
+      size={22}
+      color="#5C6B73"
+      style={styles.inputIcono}
+    />
     <TextInput
       placeholder="Correo"
       placeholderTextColor="gray"
       value={email}
       onChangeText={setEmail}
-      style={{
-        borderWidth: 1,
-        width: "90%",
-        marginTop: 10,
-        padding: 15,
-        borderRadius: 10,
-        color: "black",
-       backgroundColor: "white"
-      }}
+      style={styles.inputTexto}
     />
+  </View>
 
+  <View style={styles.inputContenedor}>
+      <Ionicons
+      name="key-outline"
+      size={22}
+      color="#5C6B73"
+      style={styles.inputIcono}
+    />
     <TextInput
       placeholder="Contraseña"
       placeholderTextColor="gray"
       value={password}
       onChangeText={setPassword}
       secureTextEntry={true}
-      style={{
-        borderWidth: 1,
-        width: "90%",
-        marginTop: 10,
-        padding: 15,
-        borderRadius: 10,
-        color: "black",
-       backgroundColor: "white"
-      }}
+      style={styles.inputTexto}
     />
+    </View>
 
     <Pressable
       style={({pressed}) => [
@@ -715,6 +721,7 @@ return (
 {screen === "dashboard" && (
   <ScrollView
   style={{flex: 1}}
+  showsVerticalScrollIndicator={false}
   contentContainerStyle={{ alignItems: "center", paddingTop: 60, paddingBottom: 40 }}>
   <Text
       style={{
@@ -726,18 +733,7 @@ return (
       </Text>
     <TouchableOpacity
     onPress={enviarMensajeEmergencia}
-    style={{
-      position: "absolute",
-      bottom: 30,
-      right: 20,
-      width: 70,
-      height: 70,
-      borderRadius: 35,
-      backgroundColor: "red",
-      justifyContent: "center",
-      alignItems: "center",
-      elevation: 5
-    }}
+    style={styles.btnemergencia}
   >
     <Text
       style={{
@@ -751,50 +747,41 @@ return (
   </TouchableOpacity>
   <Pressable
     style={({pressed}) => [
-      styles.btnCrearCuenta,
-      pressed && styles.btnCrearCuentaPressed
+      styles.btndashboard,
+      pressed && styles.btndashboardPressed
     ]}
     onPress={() => setScreen("VerDatos")}
   >
     <Text
-      style={{
-        fontSize: 20,
-        fontWeight: "bold"
-      }}
+      style={styles.btndashboardText}
     >
-      Ver datos generales
+      Datos generales
     </Text>
   </Pressable>
 
   <Pressable
     style={({pressed}) => [
-      styles.btnCrearCuenta,
-      pressed && styles.btnCrearCuentaPressed
+      styles.btndashboard,
+      pressed && styles.btndashboardPressed
     ]}
     onPress={() => setScreen("EditarDatos")}
   >
     <Text
-      style={{
-        fontSize: 20,
-        fontWeight: "bold"
-      }}
+      style={styles.btndashboardText}
     >
-      Editar datos generales
+      Editar tus datos 
     </Text>
   </Pressable>
 
   <Pressable
     style={({pressed}) => [
-      styles.btnCrearCuenta,
-      pressed && styles.btnCrearCuentaPressed
+      styles.btndashboard,
+      pressed && styles.btndashboardPressed
     ]}
     onPress={() => setScreen("Recordatorios")}
   >
     <Text
-      style={{
-        fontSize: 20,
-        fontWeight: "bold"
-      }}
+      style={styles.btndashboardText}
     >
       Recordatorios
     </Text>
@@ -802,16 +789,13 @@ return (
 
   <Pressable
    style={({pressed}) => [
-      styles.btnCrearCuenta,
-      pressed && styles.btnCrearCuentaPressed
+      styles.btndashboard,
+      pressed && styles.btndashboardPressed
     ]}
     onPress={() => setScreen("Presion")}
   >
     <Text
-      style={{
-        fontSize: 20,
-        fontWeight: "bold"
-      }}
+      style={styles.btndashboardText}
     >
       Presión arterial
     </Text>
@@ -819,28 +803,25 @@ return (
 
   <Pressable
       style={({pressed}) => [
-      styles.btnCrearCuenta,
-      pressed && styles.btnCrearCuentaPressed
+      styles.btndashboard,
+      pressed && styles.btndashboardPressed
     ]}
       onPress={finalizarTerapia}
     >
-      <Text style={styles.btnCrearCuentaText}>
-        Finalizar terapia del día
+      <Text style={styles.btndashboardText}>
+        Finalizar terapia 
       </Text>
     </Pressable>
 
     <Pressable
     style={({pressed}) => [
-      styles.btnCrearCuenta,
-      pressed && styles.btnCrearCuentaPressed
+      styles.btndashboard,
+      pressed && styles.btndashboardPressed
     ]}
     onPress={() => setScreen("welcome")}
   >
     <Text
-      style={{
-        fontSize: 20,
-        fontWeight: "bold"
-      }}
+      style={styles.btndashboardText}
     >
       Volver
     </Text>
@@ -864,34 +845,28 @@ return (
       }}>
         Se necesitan más datos para continuar
       </Text> 
+
+    <View style={styles.inputContenedor}>
     <TextInput
       placeholder="nombre"
       placeholderTextColor="gray"
       value={nombre}
       onChangeText={setNombre}
-      style={{
-      borderWidth: 1,
-      width: "100%",
-      marginTop: 10,
-      padding: 8,
-     color: "black",
-     backgroundColor: "white"
-      }}
+      style={styles.inputTexto}
       />
+    </View>
+
+    <View style={styles.inputContenedor}>
     <TextInput
     placeholder="Apellido"
     placeholderTextColor="gray"
     value={apellido}
     onChangeText={setApellido}
-    style={{
-      borderWidth: 1,
-      width: "100%",
-      marginTop: 10,
-      padding: 8,
-     color: "black",
-     backgroundColor: "white"
-    }}
+    style={styles.inputTexto}
     />
+    </View>
+
+    <View style={styles.inputContenedor}>
     <TextInput
       placeholder="DD/MM/AAAA"
       placeholderTextColor="gray"
@@ -918,44 +893,31 @@ return (
         }
       }}
       keyboardType="numeric"
-      style={{
-        borderWidth: 1,
-        width: "100%",
-        marginTop: 10,
-        padding: 8,
-        color: "black",
-        backgroundColor: "white"
-      }}
+      style={styles.inputTexto}
     />
+    </View>
+
+    <View style={styles.inputContenedor}>
     <TextInput
     placeholder="Tipo de sangre"
     placeholderTextColor="gray"
     value={tipoSangre}
     onChangeText={setTipoSangre}
-    style={{
-      borderWidth: 1,
-      width: "100%",
-      marginTop: 10,
-      padding: 8,
-      color: "black",
-      backgroundColor: "white"
-    }}
+    style={styles.inputTexto}
     />
+    </View>
+
+    <View style={styles.inputContenedor}>
     <TextInput
     placeholder="Teléfono de emergencia"
     placeholderTextColor="gray"
     value={telefonoEmergencia}
     onChangeText={setTelefonoEmergencia}
     keyboardType="numeric"
-    style={{
-      borderWidth: 1,
-      width: "100%",
-      marginTop: 10,
-      padding: 8,
-      color: "black",
-      backgroundColor: "white"
-    }}
+    style={styles.inputTexto}
     />
+    </View>
+
     <Pressable
   style={({pressed}) => [
         styles.btnCrearCuenta,
@@ -991,13 +953,33 @@ return (
 )}
 {screen === "VerDatos" && (
   <>
-    <Text>Datos generales</Text>
+    <View style={styles.tarjetaContenedor}>
+    <Text style={styles.tarjetaTitulo}>Datos generales</Text>
+    <View style={styles.lineaDivisoria} />
+    <View style={styles.datoRenglon}>
+    <Ionicons name="person-outline" size={20} color="#5C6B73" style={styles.datoIcono} />
+    <Text style={styles.datoEtiqueta}>Nombre:</Text>
+    <Text style={styles.datoValor}>{nombre} {apellido}</Text>
+  </View>
 
-    <Text>Nombre: {nombre}</Text>
-    <Text>Apellido: {apellido}</Text>
-    <Text>Fecha: {fechaNacimiento}</Text>
-    <Text>Tipo de sangre: {tipoSangre}</Text>
-    <Text>Emergencia: {telefonoEmergencia}</Text>
+  <View style={styles.datoRenglon}>
+    <Ionicons name="calendar-outline" size={20} color="#5C6B73" style={styles.datoIcono} />
+    <Text style={styles.datoEtiqueta}>Fecha:</Text>
+    <Text style={styles.datoValor}>{fechaNacimiento}</Text>
+  </View>
+
+  <View style={styles.datoRenglon}>
+    <Ionicons name="water-outline" size={20} color="#5C6B73" style={styles.datoIcono} />
+    <Text style={styles.datoEtiqueta}>Tipo de sangre:</Text>
+    <Text style={styles.datoValor}>{tipoSangre}</Text>
+  </View>
+
+  <View style={styles.datoRenglon}>
+    <Ionicons name="alert-circle-outline" size={20} color="#5C6B73" style={styles.datoIcono} />
+    <Text style={styles.datoEtiqueta}>Emergencia:</Text>
+    <Text style={styles.datoValor}>{telefonoEmergencia}</Text>
+  </View>
+</View>
 
 <Pressable
     style={({pressed}) => [
@@ -1039,27 +1021,36 @@ return (
     <Text style={{ fontSize: 22, fontWeight: "bold" }}>
       Recordatorios de levantamiento, horas en formato 24 horas
     </Text>
+    <View style={styles.inputContenedor}>
     <TextInput
       placeholderTextColor="gray"
       placeholder="Hora 1"
       value={hora1}
       onChangeText={setHora1}
-      style={{ borderWidth: 1, width: "100%", marginTop: 10, padding: 8, color: "black", backgroundColor:"white"}}
+      style={styles.inputTexto}
     />
+    </View>
+
+    <View style={styles.inputContenedor}>
     <TextInput
       placeholderTextColor="gray"
       placeholder="Hora 2"
       value={hora2}
       onChangeText={setHora2}
-      style={{ borderWidth: 1, width: "100%", marginTop: 10, padding: 8,  color: "black", backgroundColor:"white" }}
+      style={styles.inputTexto}
     />
+    </View>
+
+    <View style={styles.inputContenedor}>
     <TextInput
       placeholderTextColor="gray"
       placeholder="Hora 3"
       value={hora3}
       onChangeText={setHora3}
-      style={{ borderWidth: 1, width: "100%", marginTop: 10, padding: 8,  color: "black", backgroundColor:"white"}}
+      style={styles.inputTexto}
     /> 
+    </View>
+
   <Pressable
     style={({pressed}) => [
       styles.btnCrearCuenta,
@@ -1068,12 +1059,9 @@ return (
     onPress={GuardarRecordatorios}
   >
     <Text
-      style={{
-        fontSize: 20,
-        fontWeight: "bold"
-      }}
+      style={styles.btnCrearCuentaText}
     >
-      Guardar recordatorios
+      Guardar 
     </Text>
   </Pressable>
 
@@ -1084,7 +1072,7 @@ return (
     ]}
   onPress={() => setScreen("dashboard")}
 >
-  <Text style={{ fontSize: 18, fontWeight: "bold" }}>
+  <Text style={styles.btnCrearCuentaText}>
     Volver 
   </Text>
 </Pressable>
@@ -1100,14 +1088,7 @@ return (
   <PressureGauge pressure={presionFiltrada || 0} />
 
   <TouchableOpacity
-    style={{
-      width: "90%",
-      backgroundColor: "#494b49",
-      padding: 15,
-      borderRadius: 12,
-      marginTop: 20,
-      alignItems: "center"
-    }}
+    style={styles.btnPresion}
     onPress={async () => {
       try {
         await fetch("http://192.168.0.8/servo?angulo=0");
@@ -1122,14 +1103,7 @@ return (
   </TouchableOpacity>
 
   <TouchableOpacity
-    style={{
-      width: "90%",
-      backgroundColor: "#494b49",
-      padding: 15,
-      borderRadius: 12,
-      marginTop: 10,
-      alignItems: "center"
-    }}
+    style={styles.btnPresion}
     onPress={async () => {
       try {
         await fetch("http://192.168.0.8/servo?angulo=35");
@@ -1144,14 +1118,7 @@ return (
   </TouchableOpacity>
 
   <TouchableOpacity
-    style={{
-      width: "90%",
-      backgroundColor: "#494b49",
-      padding: 15,
-      borderRadius: 12,
-      marginTop: 10,
-      alignItems: "center"
-    }}
+    style={styles.btnPresion}
     onPress={async () => {
       try {
         await fetch("http://192.168.0.8/servo?angulo=70");
@@ -1166,14 +1133,7 @@ return (
   </TouchableOpacity>
 
   <TouchableOpacity
-  style={{
-    width: "90%",
-    backgroundColor: "#bdc9da",
-    padding: 15,
-    borderRadius: 12,
-    marginTop: 10,
-    alignItems: "center"
-  }}
+  style={styles.btnPresion1}
   onPress={async () => {
     try {
       await fetch("http://192.168.0.8/manual");
@@ -1188,14 +1148,7 @@ return (
 </TouchableOpacity>
 
 <TouchableOpacity
-  style={{
-    width: "90%",
-    backgroundColor: "#bdc9da",
-    padding: 15,
-    borderRadius: 12,
-    marginTop: 10,
-    alignItems: "center"
-  }}
+  style={styles.btnPresion1}
   onPress={async () => {
     try {
       await fetch("http://192.168.0.8/auto");
@@ -1210,14 +1163,7 @@ return (
 </TouchableOpacity>
 
   <TouchableOpacity
-    style={{
-      width: "90%",
-      backgroundColor: "#d9d9d9",
-      padding: 18,
-      borderRadius: 15,
-      marginTop: 30,
-      alignItems: "center"
-    }}
+    style={styles.btnVolverPresion}
     onPress={() => setScreen("dashboard")}
   >
     <Text style={{ fontSize: 18, fontWeight: "bold" }}>
