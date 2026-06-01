@@ -418,61 +418,44 @@ const cargarHistorial = async () => {
 
 };
 
-
 const enviarMensajeEmergencia = async () => {
-
   if (!telefonoEmergencia) {
-    Alert.alert(
-      "Error",
-      "No hay teléfono de emergencia registrado"
-    );
+    Alert.alert("Error", "No hay teléfono de emergencia registrado");
     return;
   }
 
-  const { status } =
-    await Location.requestForegroundPermissionsAsync();
+  const { status } = await Location.requestForegroundPermissionsAsync();
 
   if (status !== "granted") {
-    Alert.alert(
-      "Permiso denegado",
-      "No se pudo acceder a la ubicación"
-    );
+    Alert.alert("Permiso denegado", "No se pudo obtener ubicación");
     return;
   }
 
-  const location =
-    await Location.getCurrentPositionAsync({});
+  const location = await Location.getCurrentPositionAsync({});
 
   const latitude = location.coords.latitude;
   const longitude = location.coords.longitude;
 
-  const mapsLink =
-    `https://maps.google.com/?q=${latitude},${longitude}`;
+  const mapsLink = `https://maps.google.com/?q=${latitude},${longitude}`;
 
   const numero = "52" + telefonoEmergencia;
 
-  const mensaje =
-    ` EMERGENCIA 
-
+  const mensaje = `EMERGENCIA
 Necesito ayuda inmediata.
-Esto es un mensaje desde mi app MediTrack.
+App MediTrack
 
-Mi ubicación es:
+Ubicación:
 ${mapsLink}`;
 
   const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`;
 
-  const supported = await Linking.canOpenURL(url);
-
-  if (supported) {
+  try {
     await Linking.openURL(url);
-  } else {
-    Alert.alert(
-      "Error",
-      "WhatsApp no está instalado"
-    );
+  } catch (error) {
+    Alert.alert("Error", "No se pudo abrir WhatsApp");
   }
 };
+
 const PressureGauge = ({ pressure = 0 }) => { //IVAN
   const size = 160;
   const strokeWidth = 14;
@@ -2019,46 +2002,42 @@ return (
       Tendencia de presión
     </Text>
 
-    <LineChart
-      data={{
-        labels: historial
-          .slice(0, 8)
-          .reverse()
-          .map((_, i) => `${i + 1}`),
-
-        datasets: [
-          {
-            data: historial
-              .slice(0, 8)
-              .reverse()
-              .map(item => item.presion)
-          }
-        ]
-      }}
-      width={320}
-      height={220}
-      fromZero={true}
-      yAxisSuffix=""
-      chartConfig={{
-        backgroundGradientFrom: "#FFFFFF",
-        backgroundGradientTo: "#FFFFFF",
-        decimalPlaces: 0,
-
-        color: (opacity = 1) =>
-          `rgba(59,130,246,${opacity})`,
-
-        labelColor: () => "#555",
-
-        propsForDots: {
-          r: "5"
+{historial.length === 0 ? (
+  <Text style={{ textAlign: "center", marginVertical: 20 }}>
+    No hay mediciones registradas aún
+  </Text>
+) : (
+  <LineChart
+    data={{
+      labels: historial.slice(0, 8).reverse().map((_, i) => `${i + 1}`),
+      datasets: [
+        {
+          data: historial
+            .slice(0, 8)
+            .reverse()
+            .map(item => Number(item.presion))
         }
-      }}
-      bezier
-      style={{
-        borderRadius: 15,
-        alignSelf: "center"
-      }}
-    />
+      ]
+    }}
+    width={320}
+    height={220}
+    fromZero={true}
+    yAxisSuffix=""
+    chartConfig={{
+      backgroundGradientFrom: "#FFFFFF",
+      backgroundGradientTo: "#FFFFFF",
+      decimalPlaces: 0,
+      color: (opacity = 1) => `rgba(59,130,246,${opacity})`,
+      labelColor: () => "#555",
+      propsForDots: { r: "5" }
+    }}
+    bezier
+    style={{
+      borderRadius: 15,
+      alignSelf: "center"
+    }}
+  />
+)}
   </View>
 
   <TouchableOpacity
@@ -2169,4 +2148,5 @@ return (
  </KeyboardAvoidingView>
 );
 }
+
 
