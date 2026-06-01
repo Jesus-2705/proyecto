@@ -2,13 +2,18 @@
 // npx expo start --dev-client
 // npx expo start --dev-client --tunnel -c
 
-import { Text, View, Button, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, Pressable, StyleSheet,ScrollView,Alert,Linking} from "react-native";
-import { styles } from './themeStyles';
-import React from 'react'; 
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Location from "expo-location";
-import {Ionicons} from '@expo/vector-icons';
-import {MaterialCommunityIcons} from '@expo/vector-icons';
 import * as Notifications from "expo-notifications";
+import { FirebaseError } from 'firebase/app';
+import { createUserWithEmailAndPassword, onAuthStateChanged, signInWithEmailAndPassword, signOut, User } from "firebase/auth";
+import { addDoc, collection, doc, getDoc, getDocs, orderBy, query, serverTimestamp, setDoc } from "firebase/firestore";
+import React, { useEffect, useState } from 'react';
+import { Alert, Dimensions, KeyboardAvoidingView, Linking, Modal, Platform, Pressable, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { LineChart } from "react-native-chart-kit"; //IVNA
+import Svg, { Circle } from "react-native-svg"; //IVAN
+import { auth, db } from '../firebase/firebase.js';
+import { styles } from './themeStyles';
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
@@ -18,12 +23,6 @@ Notifications.setNotificationHandler({
     shouldShowList: true,
   })
 });
-import Svg, { Circle } from "react-native-svg"; //IVAN
-import { auth,db } from '../firebase/firebase.js';
-import { doc, getDoc, setDoc, collection, addDoc, updateDoc,} from "firebase/firestore";
-import { FirebaseError } from 'firebase/app';
-import { useState, useEffect } from "react";
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, User } from "firebase/auth";
 export default function Index() {
    const [screen, setScreen] = useState("home");
    const [racha, setRacha] = useState(0);
@@ -33,6 +32,15 @@ export default function Index() {
    const [mensaje, setMensaje] = useState("")
    const [confirmpassword, setconfirmPassword] = useState("")
    const [presionFiltrada, setPresionFiltrada] = useState(0);//IVAN
+   const [presionAnterior, setPresionAnterior] = useState(0); //Ivan
+   const [ultimoEvento, setUltimoEvento] =useState(0);//Ivan
+   const [modalVisible, setModalVisible] = useState(false); //IVAN
+    const [grado1, setGrado1] = useState("");
+    const [tiempo1, setTiempo1] = useState("");
+    const [grado2, setGrado2] = useState("");
+    const [tiempo2, setTiempo2] = useState("");
+    const [grado3, setGrado3] = useState("");
+    const [tiempo3, setTiempo3] = useState("");
    const [apellido, setApellido] = useState("");
   const [fechaNacimiento, setFechaNacimiento] = useState("");
   const [tipoSangre, setTipoSangre] = useState("");
@@ -40,6 +48,7 @@ export default function Index() {
   const [hora1, setHora1] = useState("");
   const [hora2, setHora2] = useState("");
   const [hora3, setHora3] = useState("");
+  const [historial, setHistorial] = useState<any[]>([]);//IVan
   const loadRecordatorios = async (user: User) => {
   const ref = doc(db, "usuarios", user.uid, "config", "recordatorios");
   const snap = await getDoc(ref);
@@ -158,16 +167,24 @@ useEffect(() => {
   
   return () => clearInterval(interval);
 }, [hora1, hora2, hora3]);
+
   
 useEffect(() => { //ESP32 IVAN
   const interval = setInterval(async () => {
 
     try {
 
-      const response = await fetch("http://172.20.10.7/presion");
+      const response = await fetch("http://192.168.0.8/presion");
       const texto = await response.text();
       console.log(texto);
-      setPresionFiltrada(Number(texto));
+      const valor = Number(texto); //NUEVO
+      setPresionFiltrada(valor); //NUEvo
+      const ahora = Date.now();
+      if(valor >= 50 && Math.abs(valor - presionAnterior) > 20 && ahora - ultimoEvento > 300000){
+        guardarPresion("evento");
+        setUltimoEvento(ahora);
+      }
+      setPresionAnterior(valor);
     } catch (error) {
       console.log("ESP32 no conectado", error);
     }
@@ -326,6 +343,77 @@ const GuardarRecordatorios = async () => {
   }, 1000);
 };
 
+const guardarPresion = async (tipo = "manual") => { //IVAN
+
+  if (presionFiltrada < 20) {
+  return;
+  }
+
+  try {
+
+    const user = auth.currentUser;
+
+    if (!user) return;
+
+    await addDoc(
+      collection(
+        db,
+        "usuarios",
+        user.uid,
+        "presiones"
+      ),
+      {
+        presion: Math.round(presionFiltrada),
+        fecha: serverTimestamp(),
+        tipo: tipo
+      }
+    );
+
+    if(tipo === "manual"){
+      Alert.alert(
+        "Registro guardado",
+        `${Math.round(presionFiltrada)} mmHg`
+      );
+    }
+
+  } catch(error){
+    console.log(error);
+  }
+
+};
+
+const cargarHistorial = async () => {
+
+  const user = auth.currentUser;
+
+  if (!user) return;
+
+  const q = query(
+    collection(
+      db,
+      "usuarios",
+      user.uid,
+      "presiones"
+    ),
+    orderBy("fecha", "desc")
+  );
+
+  const snap = await getDocs(q);
+
+  const datos: any[] = [];
+
+  snap.forEach((doc) => {
+    datos.push({
+      id: doc.id,
+      ...doc.data()
+    });
+  });
+
+  setHistorial(datos);
+
+};
+
+
 const enviarMensajeEmergencia = async () => {
 
   if (!telefonoEmergencia) {
@@ -424,6 +512,13 @@ const PressureGauge = ({ pressure = 0 }) => { //IVAN
     </View>
   );
 };
+
+const datosGrafica = historial //NUrvo gtafica 
+  .slice()
+  .reverse()
+  .map(item => item.presion);
+
+const screenWidth = Dimensions.get("window").width;//IBNA
   
 return (
   <KeyboardAvoidingView
@@ -749,6 +844,20 @@ return (
       SOS
     </Text>
   </TouchableOpacity>
+  <Pressable //NUEVI POR SI LA CAGO
+    style={({pressed}) => [
+      styles.btndashboard,
+      pressed && styles.btndashboardPressed
+    ]}
+    onPress={async () => {
+      await cargarHistorial();
+      setScreen("Historial");
+    }}
+  >
+    <Text style={styles.btndashboardText}>
+      Historial de presión
+    </Text>
+  </Pressable>
   <Pressable
     style={({pressed}) => [
       styles.btndashboard,
@@ -1086,98 +1195,970 @@ return (
     </View>
 )}
 
-  {screen === "Presion" && ( 
-<View style={{ flex: 1, alignItems: "center", paddingTop: 20 }}>
-  
-  <PressureGauge pressure={presionFiltrada || 0} />
-
-  <TouchableOpacity
-    style={styles.btnPresion}
-    onPress={async () => {
-      try {
-        await fetch("http://172.20.10.7/servo?angulo=0");
-      } catch (e) {
-        console.log(e);
-      }
+ {screen === "Presion" && (
+  <ScrollView
+    contentContainerStyle={{
+      flexGrow: 1,
+      alignItems: "center",
+      paddingVertical: 25,
+      backgroundColor: "#ECEBE4",
     }}
   >
-    <Text style={{ color: "white", fontWeight: "bold" }}>
-      Mover a 0°
-    </Text>
-  </TouchableOpacity>
+    <View
+      style={{
+        backgroundColor: "#FFFFFF",
+        width: "92%",
+        borderRadius: 25,
+        padding: 20,
+        alignItems: "center",
+        shadowColor: "#000",
+        shadowOpacity: 0.1,
+        shadowRadius: 10,
+        elevation: 5,
+      }}
+    >
+      <Text
+        style={{
+          fontSize: 22,
+          fontWeight: "bold",
+          marginBottom: 15,
+          color: "#22333B",
+        }}
+      >
+        Presión Actual
+      </Text>
+      <PressureGauge pressure={presionFiltrada || 0} />
+      <TouchableOpacity
+        style={{
+          marginTop: 20,
+          backgroundColor: "#48c023",
+          width: "100%",
+          padding: 15,
+          borderRadius: 15,
+          alignItems: "center",
+        }}
+        onPress={() => guardarPresion("manual")}
+      >
+        <Text
+          style={{
+            color: "white",
+            fontWeight: "bold",
+            fontSize: 16,
+          }}
+        >
+          Guardar medición
+        </Text>
+      </TouchableOpacity>
+    </View>
+    <View
+      style={{
+        width: "92%",
+        marginTop: 20,
+        backgroundColor: "#FFF",
+        borderRadius: 20,
+        padding: 15,
+        elevation: 3,
+      }}
+    >
+      <Text
+        style={{
+          fontSize: 18,
+          fontWeight: "bold",
+          marginBottom: 15,
+          color: "#22333B",
+          textAlign: "center",
+        }}
+      >
+        Control de Ángulo
+      </Text>
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+        }}
+      >
+        <TouchableOpacity
+          style={{
+            flex: 1,
+            marginHorizontal: 4,
+            backgroundColor: "#425196",
+            padding: 12,
+            borderRadius: 12,
+            alignItems: "center",
+          }}
+          onPress={async () => {
+            try {
+              await fetch("http://192.168.0.8/servo?angulo=0");
+            } catch (error) {
+              Alert.alert(
+                "Error",
+                "No se pudo conectar con el ESP32"
+              );
+              console.log(error);
+            }
+          }}
+        >
+          <Text style={{ color: "white", fontWeight: "bold" }}>
+            0°
+          </Text>
+        </TouchableOpacity>
 
-  <TouchableOpacity
-    style={styles.btnPresion}
-    onPress={async () => {
-      try {
-        await fetch("http://172.20.10.7/servo?angulo=35");
-      } catch (e) {
-        console.log(e);
-      }
+        <TouchableOpacity
+          style={{
+            flex: 1,
+            marginHorizontal: 4,
+            backgroundColor: "#425196",
+            padding: 12,
+            borderRadius: 12,
+            alignItems: "center",
+          }}
+          onPress={async () => {
+            try {
+              await fetch("http://192.168.0.8/servo?angulo=35");
+            } catch (error) {
+              Alert.alert(
+                "Error",
+                "No se pudo conectar con el ESP32"
+              );
+              console.log(error);
+            }
+          }}
+        >
+          <Text style={{ color: "white", fontWeight: "bold" }}>
+            35°
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={{
+            flex: 1,
+            marginHorizontal: 4,
+            backgroundColor: "#425196",
+            padding: 12,
+            borderRadius: 12,
+            alignItems: "center",
+          }}
+          onPress={async () => {
+            try {
+              await fetch("http://192.168.0.8/servo?angulo=70");
+            } catch (error) {
+              Alert.alert(
+                "Error",
+                "No se pudo conectar con el ESP32"
+              );
+              console.log(error);
+            }
+          }}
+        >
+          <Text style={{ color: "white", fontWeight: "bold" }}>
+            70°
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+
+    <View
+      style={{
+        width: "92%",
+        marginTop: 20,
+        backgroundColor: "#FFF",
+        borderRadius: 20,
+        padding: 15,
+        elevation: 3,
+      }}
+    >
+      <Text
+        style={{
+          fontSize: 18,
+          fontWeight: "bold",
+          marginBottom: 15,
+          textAlign: "center",
+          color: "#22333B",
+        }}
+      >
+        Modo de Control
+      </Text>
+
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+        }}
+      >
+        <TouchableOpacity
+          style={{
+            flex: 1,
+            marginRight: 5,
+            backgroundColor: "#d4626c",
+            padding: 15,
+            borderRadius: 12,
+            alignItems: "center",
+          }}
+          onPress={async () => {
+          try {
+            await fetch("http://192.168.0.8/auto");
+          } catch (error) {
+            Alert.alert(
+              "Error",
+              "No se pudo conectar con el ESP32"
+            );
+            console.log(error);
+          }
+        }}
+        >
+          <Text style={{ color: "white", fontWeight: "bold" }}>
+            Aplicación
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={{
+            flex: 1,
+            marginLeft: 5,
+            backgroundColor: "#d4626c",
+            padding: 15,
+            borderRadius: 12,
+            alignItems: "center",
+          }}
+          onPress={async () => {
+          try {
+
+            await fetch("http://192.168.0.8/manual");
+
+          } catch (error) {
+
+            Alert.alert(
+              "Error",
+              "No se pudo conectar con el ESP32"
+            );
+
+            console.log(error);
+          }
+        }}
+        >
+          <Text style={{ color: "white", fontWeight: "bold" }}>
+            Controlador
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+
+    <TouchableOpacity
+      style={{
+        marginTop: 20,
+        backgroundColor: "#4989ac",
+        width: "92%",
+        padding: 15,
+        borderRadius: 15,
+        alignItems: "center",
+      }}
+      onPress={() => setScreen("Terapias")}
+    >
+      <Text
+        style={{
+          color: "white",
+          fontWeight: "bold",
+          fontSize: 16,
+        }}
+      >
+        Terapias
+      </Text>
+    </TouchableOpacity>
+
+    <TouchableOpacity
+      style={{
+        marginTop: 12,
+        backgroundColor: "#C6D4DF",
+        width: "92%",
+        padding: 15,
+        borderRadius: 15,
+        alignItems: "center",
+      }}
+      onPress={() => setScreen("dashboard")}
+    >
+      <Text
+        style={{
+          fontSize: 16,
+          fontWeight: "bold",
+          color: "#22333B",
+        }}
+      >
+        Volver
+      </Text>
+    </TouchableOpacity>
+  </ScrollView>
+)}
+
+{screen === "Terapias" && (
+  <View
+    style={{
+      flex: 1,
+      backgroundColor: "#EEF2F7",
+      alignItems: "center",
+      paddingTop: 50,
+      paddingHorizontal: 20
     }}
   >
-    <Text style={{ color: "white", fontWeight: "bold" }}>
-      Mover a 35°
+    <Text
+      style={{
+        fontSize: 34,
+        fontWeight: "bold",
+        color: "#1E293B",
+        marginBottom: 10
+      }}
+    >
+      Terapias
     </Text>
-  </TouchableOpacity>
 
-  <TouchableOpacity
-    style={styles.btnPresion}
-    onPress={async () => {
-      try {
-        await fetch("http://172.20.10.7/servo?angulo=70");
-      } catch (e) {
-        console.log(e);
-      }
-    }}
-  >
-    <Text style={{ color: "white", fontWeight: "bold" }}>
-      Mover a 70°
+    <Text
+      style={{
+        fontSize: 16,
+        color: "#64748B",
+        marginBottom: 30,
+        textAlign: "center"
+      }}
+    >
+      Inicie una sesión terapéutica para el paciente
     </Text>
-  </TouchableOpacity>
 
-  <TouchableOpacity
-  style={styles.btnPresion1}
-  onPress={async () => {
-    try {
-      await fetch("http://172.20.10.7/manual");
-    } catch (e) {
-      console.log(e);
-    }
+    <View
+      style={{
+        width: "100%",
+        backgroundColor: "white",
+        borderRadius: 22,
+        padding: 20,
+        marginBottom: 25,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 5 },
+        shadowOpacity: 0.08,
+        shadowRadius: 10,
+        elevation: 5
+      }}
+    >
+
+      <Text
+        style={{
+          fontSize: 22,
+          fontWeight: "bold",
+          color: "#0F172A",
+          marginBottom: 8
+        }}
+      >
+        Sesión predeterminada
+      </Text>
+
+      <Text
+        style={{
+          color: "#64748B",
+          marginBottom: 18
+        }}
+      >
+        Rutina automática recomendada
+      </Text>
+
+      <View
+        style={{
+          backgroundColor: "#F8FAFC",
+          borderRadius: 15,
+          padding: 15,
+          marginBottom: 20
+        }}
+      >
+        <Text
+          style={{
+            marginBottom: 8,
+            color: "#334155",
+            fontSize: 15
+          }}
+        >
+          • Posición 1 → 0° durante 3 segundos
+        </Text>
+        <Text
+          style={{
+            marginBottom: 8,
+            color: "#334155",
+            fontSize: 15
+          }}
+        >
+          • Posición 2 → 30° durante 3 segundos
+        </Text>
+        <Text
+          style={{
+            color: "#334155",
+            fontSize: 15
+          }}
+        >
+          • Posición 3 → 60° durante 3 segundos
+        </Text>
+      </View>
+      <TouchableOpacity
+        style={{
+          backgroundColor: "#1E293B",
+          paddingVertical: 16,
+          borderRadius: 16,
+          alignItems: "center"
+        }}
+        onPress={async () => {
+          try {
+            await fetch("http://192.168.0.8/terapia1");
+            Alert.alert(
+              "Terapia",
+              "Terapia predeterminada iniciada"
+            );
+          } catch (e) {
+            console.log(e);
+          }
+        }}
+      >
+        <Text
+          style={{
+            color: "white",
+            fontWeight: "bold",
+            fontSize: 16
+          }}
+        >
+          Iniciar sesión
+        </Text>
+      </TouchableOpacity>
+    </View>
+    <TouchableOpacity
+      style={{
+        width: "100%",
+        backgroundColor: "#0EA5E9",
+        paddingVertical: 18,
+        borderRadius: 18,
+        alignItems: "center",
+        shadowColor: "#0EA5E9",
+        shadowOffset: { width: 0, height: 5 },
+        shadowOpacity: 0.25,
+        shadowRadius: 10,
+        elevation: 5
+      }}
+      onPress={() => setModalVisible(true)}
+    >
+      <Text
+        style={{
+          color: "white",
+          fontSize: 17,
+          fontWeight: "bold"
+        }}
+      >
+        Terapia personalizada
+      </Text>
+    </TouchableOpacity>
+    <Modal
+      visible={modalVisible}
+      transparent={true}
+      animationType="fade"
+    >
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: "rgba(0,0,0,0.55)"
+        }}
+      >
+        <View
+          style={{
+            width: "92%",
+            backgroundColor: "white",
+            borderRadius: 25,
+            padding: 22
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 26,
+              fontWeight: "bold",
+              color: "#0F172A",
+              textAlign: "center",
+              marginBottom: 20
+            }}
+          >
+            Sesión personalizada
+          </Text>
+          {[
+            {
+              titulo: "Posición 1",
+              grado: grado1,
+              setGrado: setGrado1,
+              tiempo: tiempo1,
+              setTiempo: setTiempo1
+            },
+            {
+              titulo: "Posición 2",
+              grado: grado2,
+              setGrado: setGrado2,
+              tiempo: tiempo2,
+              setTiempo: setTiempo2
+            },
+            {
+              titulo: "Posición 3",
+              grado: grado3,
+              setGrado: setGrado3,
+              tiempo: tiempo3,
+              setTiempo: setTiempo3
+            }
+          ].map((item, index) => (
+            <View
+              key={index}
+              style={{
+                backgroundColor: "#F8FAFC",
+                borderRadius: 18,
+                padding: 15,
+                marginBottom: 15
+              }}
+            >
+              <Text
+                style={{
+                  fontWeight: "bold",
+                  fontSize: 16,
+                  marginBottom: 10,
+                  color: "#1E293B"
+                }}
+              >
+                {item.titulo}
+              </Text>
+
+              <TextInput
+                placeholder="Grados (0-80)"
+                keyboardType="numeric"
+                value={item.grado}
+                onChangeText={(text) =>
+                  item.setGrado(
+                    text.replace(/[^0-9]/g, "")
+                  )
+                }
+                style={{
+                  backgroundColor: "white",
+                  borderWidth: 1,
+                  borderColor: "#CBD5E1",
+                  borderRadius: 12,
+                  padding: 14,
+                  marginBottom: 10
+                }}
+              />
+              <TextInput
+                placeholder="Tiempo (seg)"
+                keyboardType="numeric"
+                value={item.tiempo}
+                onChangeText={(text) =>
+                  item.setTiempo(
+                    text.replace(/[^0-9]/g, "")
+                  )
+                }
+                style={{
+                  backgroundColor: "white",
+                  borderWidth: 1,
+                  borderColor: "#CBD5E1",
+                  borderRadius: 12,
+                  padding: 14
+                }}
+              />
+            </View>
+          ))}
+          <TouchableOpacity
+            style={{
+              backgroundColor: "#0F172A",
+              paddingVertical: 17,
+              borderRadius: 18,
+              alignItems: "center",
+              marginTop: 5
+            }}
+            onPress={async () => {
+
+              if (!grado1 || !tiempo1 || !grado2 || !tiempo2 || !grado3 || !tiempo3) {
+                Alert.alert(
+                  "Error",
+                  "Completa todos los campos");
+                return;
+              }
+              const g1 = Number(grado1);
+              const g2 = Number(grado2);
+              const g3 = Number(grado3);
+              const t1 = Number(tiempo1);
+              const t2 = Number(tiempo2);
+              const t3 = Number(tiempo3);
+              if (g1 < 0 || g1 > 80 || g2 < 0 || g2 > 80 || g3 < 0 || g3 > 80) {
+                Alert.alert(
+                  "Error",
+                  "Los grados deben estar entre 0 y 80");
+                return;
+              }
+
+              if (t1 <= 0 ||t2 <= 0 ||t3 <= 0) {
+                Alert.alert(
+                  "Error",
+                  "Los tiempos deben ser mayores a 0");
+                return;
+              }
+              try {
+                await fetch(
+                  `http://192.168.0.8/terapiaPersonalizada?g1=${g1}&t1=${t1}&g2=${g2}&t2=${t2}&g3=${g3}&t3=${t3}`
+                );
+                Alert.alert(
+                  "Terapia",
+                  "Terapia iniciada"
+                );
+                setModalVisible(false);
+              } catch (error) {
+                Alert.alert(
+                  "Error",
+                  "No se pudo comunicar con el ESP32"
+                );
+              }
+            }}
+          >
+            <Text
+              style={{
+                color: "white",
+                fontWeight: "bold",
+                fontSize: 16
+              }}
+            >
+              Iniciar terapia
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={{
+              backgroundColor: "#E2E8F0",
+              paddingVertical: 15,
+              borderRadius: 18,
+              alignItems: "center",
+              marginTop: 12
+            }}
+            onPress={() => setModalVisible(false)}
+          >
+            <Text
+              style={{
+                fontWeight: "bold",
+                color: "#1E293B"
+              }}
+            >
+              Cancelar
+            </Text>
+          </TouchableOpacity>
+
+        </View>
+      </View>
+    </Modal>
+
+    <TouchableOpacity
+      style={{
+        marginTop: 20,
+        width: "100%",
+        backgroundColor: "#CBD5E1",
+        paddingVertical: 16,
+        borderRadius: 18,
+        alignItems: "center"
+      }}
+      onPress={() => setScreen("Presion")}
+    >
+      <Text
+        style={{
+          fontSize: 16,
+          fontWeight: "bold",
+          color: "#1E293B"
+        }}
+      >
+        Volver
+      </Text>
+    </TouchableOpacity>
+
+  </View>
+)}
+
+{screen === "Historial" && (
+
+<ScrollView
+  style={{ flex: 1 }}
+  contentContainerStyle={{
+    padding: 15,
+    paddingBottom: 40,
+    alignItems: "center"
   }}
+  showsVerticalScrollIndicator={false}
 >
-  <Text style={{ color: "white", fontWeight: "bold" }}>
-    Aplicación
-  </Text>
-</TouchableOpacity>
 
-<TouchableOpacity
-  style={styles.btnPresion1}
-  onPress={async () => {
-    try {
-      await fetch("http://172.20.10.7/auto");
-    } catch (e) {
-      console.log(e);
-    }
-  }}
->
-  <Text style={{ color: "white", fontWeight: "bold" }}>
-    Controlador
+  <Text
+    style={{
+      fontSize: 30,
+      fontWeight: "bold",
+      color: "#253237",
+      marginBottom: 20
+    }}
+  >
+    Historial
   </Text>
-</TouchableOpacity>
+
+  <View
+    style={{
+      flexDirection: "row",
+      justifyContent: "space-between",
+      width: "100%",
+      marginBottom: 20
+    }}
+  >
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: "#3B82F6",
+        borderRadius: 15,
+        padding: 15,
+        marginRight: 5,
+        alignItems: "center"
+      }}
+    >
+      <Text style={{ color: "white", fontSize: 12 }}>
+        Muestras
+      </Text>
+
+      <Text
+        style={{
+          color: "white",
+          fontSize: 24,
+          fontWeight: "bold"
+        }}
+      >
+        {
+          historial.length
+            ? Math.round(
+                historial.reduce((acc, item) => acc + item.presion,0
+                ) / historial.length
+              )
+            : 0
+        }
+      </Text>
+    </View>
+
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: "#22C55E",
+        borderRadius: 15,
+        padding: 15,
+        marginHorizontal: 5,
+        alignItems: "center"
+      }}
+    >
+      <Text style={{ color: "white", fontSize: 12 }}>
+        Máxima
+      </Text>
+
+      <Text
+        style={{
+          color: "white",
+          fontSize: 24,
+          fontWeight: "bold"
+        }}
+      >
+        {
+          historial.length
+            ? Math.max(...historial.map(x => x.presion))
+            : 0
+        }
+      </Text>
+    </View>
+
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: "#EF4444",
+        borderRadius: 15,
+        padding: 15,
+        marginLeft: 5,
+        alignItems: "center"
+      }}
+    >
+      <Text style={{ color: "white", fontSize: 12 }}>
+        Mínima
+      </Text>
+
+      <Text
+        style={{
+          color: "white",
+          fontSize: 24,
+          fontWeight: "bold"
+        }}
+      >
+        {
+          historial.length
+            ? Math.min(...historial.map(x => x.presion))
+            : 0
+        }
+      </Text>
+    </View>
+  </View>
+
+  <View
+    style={{
+      width: "100%",
+      backgroundColor: "white",
+      borderRadius: 20,
+      padding: 15,
+      marginBottom: 25,
+      elevation: 4
+    }}
+  >
+    <Text
+      style={{
+        textAlign: "center",
+        fontSize: 18,
+        fontWeight: "bold",
+        marginBottom: 10
+      }}
+    >
+      Tendencia de presión
+    </Text>
+
+    <LineChart
+      data={{
+        labels: historial
+          .slice(0, 8)
+          .reverse()
+          .map((_, i) => `${i + 1}`),
+
+        datasets: [
+          {
+            data: historial
+              .slice(0, 8)
+              .reverse()
+              .map(item => item.presion)
+          }
+        ]
+      }}
+      width={320}
+      height={220}
+      yAxisSuffix=""
+      chartConfig={{
+        backgroundGradientFrom: "#FFFFFF",
+        backgroundGradientTo: "#FFFFFF",
+        decimalPlaces: 0,
+
+        color: (opacity = 1) =>
+          `rgba(59,130,246,${opacity})`,
+
+        labelColor: () => "#555",
+
+        propsForDots: {
+          r: "5"
+        }
+      }}
+      bezier
+      style={{
+        borderRadius: 15,
+        alignSelf: "center"
+      }}
+    />
+  </View>
 
   <TouchableOpacity
-    style={styles.btnVolverPresion}
+    style={{
+      width: "80%",
+      backgroundColor: "#A6BBC8",
+      padding: 15,
+      borderRadius: 15,
+      alignItems: "center",
+      marginTop: 10
+    }}
     onPress={() => setScreen("dashboard")}
   >
-    <Text style={{ fontSize: 18, fontWeight: "bold" }}>
+    
+    <Text
+      style={{
+        fontWeight: "bold",
+        fontSize: 18
+      }}
+    >
       Volver
     </Text>
   </TouchableOpacity>
 
-</View>
+  <Text
+    style={{
+      fontSize: 22,
+      fontWeight: "bold",
+      marginBottom: 15
+    }}
+  >
+    Registros
+  </Text>
+  
+
+  {historial.map((item) => (
+
+    <View
+      key={item.id}
+      style={{
+        width: "100%",
+        backgroundColor: "white",
+        borderRadius: 18,
+        padding: 15,
+        marginBottom: 12,
+        elevation: 2
+      }}
+    >
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center"
+        }}
+      >
+        <Text
+          style={{
+            fontSize: 24,
+            fontWeight: "bold",
+            color: "#253237"
+          }}
+        >
+          {item.presion} mmHg
+        </Text>
+
+        <View
+          style={{
+            backgroundColor:
+              item.tipo === "manual"
+                ? "#3B82F6"
+                : "#F59E0B",
+
+            paddingHorizontal: 12,
+            paddingVertical: 5,
+            borderRadius: 20
+          }}
+        >
+          <Text
+            style={{
+              color: "white",
+              fontWeight: "bold",
+              fontSize: 12
+            }}
+          >
+            {item.tipo}
+          </Text>
+        </View>
+      </View>
+
+      <Text
+        style={{
+          color: "#666",
+          marginTop: 5
+        }}
+      >
+        {item.fecha?.toDate
+          ? item.fecha
+              .toDate()
+              .toLocaleString()
+          : ""}
+      </Text>
+    </View>
+  ))}
+</ScrollView>
 )}
   </View>
  </KeyboardAvoidingView>
 );
 }
+
