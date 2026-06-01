@@ -8,7 +8,7 @@ import * as Notifications from "expo-notifications";
 import { FirebaseError } from 'firebase/app';
 import { createUserWithEmailAndPassword, onAuthStateChanged, signInWithEmailAndPassword, signOut, User } from "firebase/auth";
 import { addDoc, collection, doc, getDoc, getDocs, orderBy, query, serverTimestamp, setDoc } from "firebase/firestore";
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Alert, Dimensions, KeyboardAvoidingView, Linking, Modal, Platform, Pressable, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { LineChart } from "react-native-chart-kit"; //IVNA
 import Svg, { Circle } from "react-native-svg"; //IVAN
@@ -35,6 +35,8 @@ export default function Index() {
    const [presionAnterior, setPresionAnterior] = useState(0); //Ivan
    const [ultimoEvento, setUltimoEvento] =useState(0);//Ivan
    const [modalVisible, setModalVisible] = useState(false); //IVAN
+   const presionAnteriorRef = useRef(0);
+   const ultimoEventoRef = useRef(0);
     const [grado1, setGrado1] = useState("");
     const [tiempo1, setTiempo1] = useState("");
     const [grado2, setGrado2] = useState("");
@@ -169,22 +171,25 @@ useEffect(() => {
 }, [hora1, hora2, hora3]);
 
   
-useEffect(() => { //ESP32 IVAN
+useEffect(() => {
+
   const interval = setInterval(async () => {
 
     try {
-
       const response = await fetch("http://192.168.0.8/presion");
       const texto = await response.text();
-      console.log(texto);
-      const valor = Number(texto); //NUEVO
-      setPresionFiltrada(valor); //NUEvo
+      const valor = Number(texto);
+      setPresionFiltrada(valor);
       const ahora = Date.now();
-      if(valor >= 50 && Math.abs(valor - presionAnterior) > 20 && ahora - ultimoEvento > 300000){
+      if (
+        valor >= 50 &&
+        Math.abs(valor - presionAnteriorRef.current) > 20 &&
+        ahora - ultimoEventoRef.current > 300000
+      ) {
         guardarPresion("evento");
-        setUltimoEvento(ahora);
+        ultimoEventoRef.current = ahora;
       }
-      setPresionAnterior(valor);
+      presionAnteriorRef.current = valor;
     } catch (error) {
       console.log("ESP32 no conectado", error);
     }
@@ -1768,7 +1773,8 @@ return (
             }}
             onPress={async () => {
 
-              if (!grado1 || !tiempo1 || !grado2 || !tiempo2 || !grado3 || !tiempo3) {
+              if (!grado1 || !tiempo1 || !grado2 || !tiempo2 || !grado3 || !tiempo3)
+               {
                 Alert.alert(
                   "Error",
                   "Completa todos los campos");
@@ -2031,6 +2037,7 @@ return (
       }}
       width={320}
       height={220}
+      fromZero={true}
       yAxisSuffix=""
       chartConfig={{
         backgroundGradientFrom: "#FFFFFF",
@@ -2154,6 +2161,7 @@ return (
           : ""}
       </Text>
     </View>
+
   ))}
 </ScrollView>
 )}
