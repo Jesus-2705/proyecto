@@ -32,11 +32,12 @@ export default function Index() {
    const [mensaje, setMensaje] = useState("")
    const [confirmpassword, setconfirmPassword] = useState("")
    const [presionFiltrada, setPresionFiltrada] = useState(0);//IVAN
-   const [presionAnterior, setPresionAnterior] = useState(0); //Ivan
    const [ultimoEvento, setUltimoEvento] =useState(0);//Ivan
    const [modalVisible, setModalVisible] = useState(false); //IVAN
-   const presionAnteriorRef = useRef(0);
-   const ultimoEventoRef = useRef(0);
+   const ultimoEventoRef = useRef(0); //Ivan
+   const ultimoTipoEventoRef = useRef(""); //IVAN
+   const inicioLecturaRef = useRef(Date.now()); //IVAN
+   const ultimoValorEventoRef = useRef(0);//Dale por favor 
     const [grado1, setGrado1] = useState("");
     const [tiempo1, setTiempo1] = useState("");
     const [grado2, setGrado2] = useState("");
@@ -171,31 +172,28 @@ useEffect(() => {
 }, [hora1, hora2, hora3]);
 
   
-useEffect(() => {
+useEffect(() => { //Todo el show //IVAN
 
   const interval = setInterval(async () => {
-
     try {
-      const response = await fetch("http://192.168.0.8/presion");
+      const response = await fetch("http://192.168.100.15/presion");
       const texto = await response.text();
-      const valor = Number(texto);
+      const valor: number = Number(texto);
       setPresionFiltrada(valor);
       const ahora = Date.now();
-      if (
-        valor >= 50 &&
-        Math.abs(valor - presionAnteriorRef.current) > 20 &&
-        ahora - ultimoEventoRef.current > 300000
-      ) {
-        guardarPresion("evento");
-        ultimoEventoRef.current = ahora;
-      }
-      presionAnteriorRef.current = valor;
+        if (
+          Date.now() - inicioLecturaRef.current > 10000 && valor >= 50 && valor <= 250 && (valor >= 130 || valor <= 110) && ahora - ultimoEventoRef.current > 30000 && Math.abs(valor - ultimoValorEventoRef.current) >= 5) {
+          guardarPresion("evento", valor);
+          ultimoEventoRef.current = ahora;
+          ultimoValorEventoRef.current = valor;
+        }
     } catch (error) {
       console.log("ESP32 no conectado", error);
     }
   }, 500);
   return () => clearInterval(interval);
 }, []);
+  
   
 const handleRegister = async () => {
   setMensaje("");
@@ -348,18 +346,20 @@ const GuardarRecordatorios = async () => {
   }, 1000);
 };
 
-const guardarPresion = async (tipo = "manual") => { //IVAN
-
-  if (presionFiltrada < 20) {
-  return;
+const guardarPresion = async (//IVAN
+  tipo: string = "manual",
+  valorManual: number | null = null
+) => {
+  const valorGuardar =
+    valorManual !== null
+      ? valorManual
+      : presionFiltrada;
+  if (valorGuardar < 20) {
+    return;
   }
-
   try {
-
     const user = auth.currentUser;
-
     if (!user) return;
-
     await addDoc(
       collection(
         db,
@@ -368,16 +368,15 @@ const guardarPresion = async (tipo = "manual") => { //IVAN
         "presiones"
       ),
       {
-        presion: Math.round(presionFiltrada),
+        presion: Math.round(valorGuardar),
         fecha: serverTimestamp(),
         tipo: tipo
       }
     );
-
     if(tipo === "manual"){
       Alert.alert(
         "Registro guardado",
-        `${Math.round(presionFiltrada)} mmHg`
+        `${Math.round(valorGuardar)} mmHg`
       );
     }
 
@@ -387,14 +386,11 @@ const guardarPresion = async (tipo = "manual") => { //IVAN
 
 };
 
-const cargarHistorial = async () => {
-
+const cargarHistorial = async () => { //IVAN
   const user = auth.currentUser;
-
   if (!user) return;
-
   const q = query(
-    collection(
+collection(
       db,
       "usuarios",
       user.uid,
@@ -402,20 +398,15 @@ const cargarHistorial = async () => {
     ),
     orderBy("fecha", "desc")
   );
-
   const snap = await getDocs(q);
-
   const datos: any[] = [];
-
   snap.forEach((doc) => {
     datos.push({
       id: doc.id,
       ...doc.data()
     });
   });
-
   setHistorial(datos);
-
 };
 
 const enviarMensajeEmergencia = async () => {
@@ -500,7 +491,7 @@ const PressureGauge = ({ pressure = 0 }) => { //IVAN
     </View>
   );
 };
-
+  
 const datosGrafica = historial //NUrvo gtafica 
   .slice()
   .reverse()
@@ -1183,7 +1174,7 @@ return (
     </View>
 )}
 
- {screen === "Presion" && (
+{screen === "Presion" && (
   <ScrollView
     contentContainerStyle={{
       flexGrow: 1,
@@ -1276,7 +1267,7 @@ return (
           }}
           onPress={async () => {
             try {
-              await fetch("http://192.168.0.8/servo?angulo=0");
+              await fetch("http://192.168.100.15/servo?angulo=0");
             } catch (error) {
               Alert.alert(
                 "Error",
@@ -1302,7 +1293,7 @@ return (
           }}
           onPress={async () => {
             try {
-              await fetch("http://192.168.0.8/servo?angulo=35");
+              await fetch("http://192.168.100.15/servo?angulo=35");
             } catch (error) {
               Alert.alert(
                 "Error",
@@ -1328,7 +1319,7 @@ return (
           }}
           onPress={async () => {
             try {
-              await fetch("http://192.168.0.8/servo?angulo=70");
+              await fetch("http://192.168.100.15/servo?angulo=70");
             } catch (error) {
               Alert.alert(
                 "Error",
@@ -1384,7 +1375,7 @@ return (
           }}
           onPress={async () => {
           try {
-            await fetch("http://192.168.0.8/auto");
+            await fetch("http://192.168.100.15/auto");
           } catch (error) {
             Alert.alert(
               "Error",
@@ -1411,7 +1402,7 @@ return (
           onPress={async () => {
           try {
 
-            await fetch("http://192.168.0.8/manual");
+            await fetch("http://192.168.100.15/manual");
 
           } catch (error) {
 
@@ -1588,7 +1579,7 @@ return (
         }}
         onPress={async () => {
           try {
-            await fetch("http://192.168.0.8/terapia1");
+            await fetch("http://192.168.100.15/terapia1");
             Alert.alert(
               "Terapia",
               "Terapia predeterminada iniciada"
@@ -1784,7 +1775,7 @@ return (
               }
               try {
                 await fetch(
-                  `http://192.168.0.8/terapiaPersonalizada?g1=${g1}&t1=${t1}&g2=${g2}&t2=${t2}&g3=${g3}&t3=${t3}`
+                  `http://192.168.100.15/terapiaPersonalizada?g1=${g1}&t1=${t1}&g2=${g2}&t2=${t2}&g3=${g3}&t3=${t3}`
                 );
                 Alert.alert(
                   "Terapia",
@@ -1901,7 +1892,7 @@ return (
       }}
     >
       <Text style={{ color: "white", fontSize: 12 }}>
-        Muestras
+        Promedio
       </Text>
 
       <Text
