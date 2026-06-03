@@ -803,7 +803,7 @@ return (
     {/* HEADER DE BIENVENIDA */}
     <View style={styles.headerContainer}>
       <View>
-        <Text style={styles.welcomeText}>¡Hola, {nombre} 👋</Text>
+        <Text style={styles.welcomeText}>Hola {nombre} 👋</Text>
         <Text style={styles.subtitleText}>Bipedestador monitoreado</Text>
       </View>
       <View style={styles.avatarCircle}>
@@ -920,8 +920,8 @@ return (
         <View style={[styles.iconCircle, { backgroundColor: '#E0F7FA' }]}>
           <FontAwesome5 name="bone" size={24} color="#00BCD4" />
         </View>
-        <Text style={styles.cardTitle}>Terapias</Text>
-        <Text style={styles.cardSub}>Sesiones y rutinas actuales</Text>
+        <Text style={styles.cardTitle}>Es todo por hoy</Text>
+        <Text style={styles.cardSub}>Finaliza tu terapia para aumentar tu racha</Text>
       </Pressable>
 
     </View>
@@ -955,16 +955,18 @@ return (
     >
    <Text
       style={{
-        fontSize: 28,
+        fontSize: 25,
         fontWeight: "bold",
-        marginBottom: 30
+        marginBottom: 20,
+        marginTop: 15,
+        textAlign: "center"
       }}>
         Se necesitan más datos para continuar
       </Text> 
 
     <View style={styles.inputContenedor}>
     <TextInput
-      placeholder="nombre"
+      placeholder="Nombre"
       placeholderTextColor="gray"
       value={nombre}
       onChangeText={setNombre}
@@ -1042,10 +1044,7 @@ return (
   onPress={handleGuardarDatos}
 >
   <Text
-    style={{
-      fontSize: 20,
-      fontWeight: "bold"
-    }}
+    style={styles.btnTexto}
   >
     Guardar datos
   </Text>
@@ -1057,7 +1056,7 @@ return (
     ]}
       onPress={() => setScreen("dashboard")}
     >
-      <Text style={{ fontSize: 18, fontWeight: "bold" }}>
+      <Text style={styles.btnTexto}>
         Volver
       </Text>
     </Pressable>
@@ -1105,10 +1104,7 @@ return (
     onPress={() => setScreen("EditarDatos")}
   >
     <Text
-      style={{
-        fontSize: 20,
-        fontWeight: "bold"
-      }}
+      style={styles.btnTexto}
     >
       Editar datos
     </Text>
@@ -1122,10 +1118,7 @@ return (
     onPress={() => setScreen("dashboard")}
   >
     <Text
-      style={{
-        fontSize: 20,
-        fontWeight: "bold"
-      }}
+      style={styles.btnTexto}
     >
       Volver
     </Text>
@@ -1134,8 +1127,11 @@ return (
 )}
 {screen === "Recordatorios" && (
     <View  style={{ flex: 1, alignItems: "center", padding: 20 }}>
-    <Text style={{ fontSize: 22, fontWeight: "bold" }}>
-      Recordatorios de levantamiento, horas en formato 24 horas
+    <Text style={{ fontSize: 25, fontWeight: "bold", marginTop: 15, marginBottom: 10, textAlign: "center" }}>
+      Recordatorios de terapia, horas en formato 24 horas
+    </Text>
+     <Text style={{ fontSize: 15, marginTop: 10, marginBottom: 10, textAlign: "center" }}>
+      Horas en formato 24 horas
     </Text>
     <View style={styles.inputContenedor}>
     <TextInput
@@ -1200,17 +1196,18 @@ return (
 
 {screen === "Presion" && (
   <ScrollView
+    showsVerticalScrollIndicator={false}
     contentContainerStyle={{
       flexGrow: 1,
       alignItems: "center",
       paddingVertical: 25,
-      backgroundColor: "#ECEBE4",
+      backgroundColor: "#F4F6FA",
     }}
   >
     <View
       style={{
-        backgroundColor: "#FFFFFF",
-        width: "92%",
+        backgroundColor: "#F4F6FA",
+        width: "100%",
         borderRadius: 25,
         padding: 20,
         alignItems: "center",
@@ -1272,7 +1269,7 @@ return (
           textAlign: "center",
         }}
       >
-        Control de Ángulo
+        Control de Inclinación
       </Text>
       <View
         style={{
@@ -1493,6 +1490,11 @@ return (
 )}
 
 {screen === "Terapias" && (
+  <ScrollView
+    style={styles.container}
+    showsVerticalScrollIndicator={false}
+    contentContainerStyle={styles.scrollContent}
+  >
   <View
     style={{
       flex: 1,
@@ -1872,6 +1874,7 @@ return (
     </TouchableOpacity>
 
   </View>
+</ScrollView>
 )}
 
 {screen === "Historial" && (
@@ -1888,10 +1891,11 @@ return (
 
   <Text
     style={{
-      fontSize: 30,
+      fontSize: 25,
       fontWeight: "bold",
       color: "#253237",
-      marginBottom: 20
+      marginBottom: 20,
+      marginTop:20
     }}
   >
     Historial
@@ -1901,7 +1905,7 @@ return (
     style={{
       flexDirection: "row",
       justifyContent: "space-between",
-      width: "100%",
+      width: "80%",
       marginBottom: 20
     }}
   >
@@ -1998,7 +2002,7 @@ return (
 
   <View
     style={{
-      width: "100%",
+      width: "80%",
       backgroundColor: "white",
       borderRadius: 20,
       padding: 15,
@@ -2058,7 +2062,7 @@ return (
   <TouchableOpacity
     style={{
       width: "80%",
-      backgroundColor: "#A6BBC8",
+      backgroundColor: "#0F2942",
       padding: 15,
       borderRadius: 15,
       alignItems: "center",
@@ -2070,7 +2074,8 @@ return (
     <Text
       style={{
         fontWeight: "bold",
-        fontSize: 18
+        fontSize: 18,
+        color: "#ffffff"
       }}
     >
       Volver
@@ -2081,7 +2086,8 @@ return (
     style={{
       fontSize: 22,
       fontWeight: "bold",
-      marginBottom: 15
+      marginBottom: 15,
+      marginTop: 15
     }}
   >
     Registros
@@ -2093,7 +2099,7 @@ return (
     <View
       key={item.id}
       style={{
-        width: "100%",
+        width: "80%",
         backgroundColor: "white",
         borderRadius: 18,
         padding: 15,
