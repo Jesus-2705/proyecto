@@ -2,11 +2,11 @@
 // npx expo start --dev-client
 // npx expo start --dev-client --tunnel -c
 
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
 import * as Location from "expo-location";
 import * as Notifications from "expo-notifications";
 import { FirebaseError } from 'firebase/app';
-import { createUserWithEmailAndPassword, onAuthStateChanged, signInWithEmailAndPassword, signOut, User } from "firebase/auth";
+import { createUserWithEmailAndPassword, onAuthStateChanged, signInWithEmailAndPassword, signOut, User, sendEmailVerification } from "firebase/auth";
 import { addDoc, collection, doc, getDoc, getDocs, orderBy, query, serverTimestamp, setDoc } from "firebase/firestore";
 import React, { useEffect, useRef, useState } from 'react';
 import { Alert, Dimensions, KeyboardAvoidingView, Linking, Modal, Platform, Pressable, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
@@ -25,6 +25,8 @@ Notifications.setNotificationHandler({
 });
 export default function Index() {
    const [screen, setScreen] = useState("home");
+   const { width } = Dimensions.get('window');
+const CARD_WIDTH = (width - 48) / 2;
    const [racha, setRacha] = useState(0);
    const [nombre, setNombre] = useState("");
    const [email, setEmail] = useState("");
@@ -64,7 +66,7 @@ export default function Index() {
 };
 useEffect(() => {
   const unsubscribe = onAuthStateChanged(auth, async (user) => {
-    if (user) {
+    if (user && user.emailVerified) {
       setScreen("welcome");
       const ref = doc(db, "usuarios", user.uid);
       const snap = await getDoc(ref);
@@ -79,7 +81,7 @@ useEffect(() => {
         loadRecordatorios(user);
       }
     } else {
-      setScreen("home");
+      setScreen((pantallaActual) => (pantallaActual === "welcome" ? "home" : pantallaActual));
     }
   });
   return unsubscribe;
@@ -176,7 +178,7 @@ useEffect(() => { //Todo el show //IVAN
 
   const interval = setInterval(async () => {
     try {
-      const response = await fetch("http://192.168.100.15/presion");
+      const response = await fetch("http://172.20.10.7/presion");
       const texto = await response.text();
       const valor: number = Number(texto);
       setPresionFiltrada(valor);
@@ -208,11 +210,13 @@ const handleRegister = async () => {
   try {
     const userCredential = await createUserWithEmailAndPassword(
       auth,
-      email,
+      email.trim(),
       password
     );
     console.log("Usuario creado:", userCredential.user.email);
-    setMensaje("Cuenta creada correctamente ");
+    await sendEmailVerification(userCredential.user);
+    await signOut(auth);
+    setMensaje("Cuenta creada correctamente, revisa tu correo para verificarla ");
     // limpiar campos
     setNombre("");
     setEmail("");
@@ -252,11 +256,17 @@ const handleLogin = async () => {
   try {
   const userCredential = await signInWithEmailAndPassword(
     auth,
-    email,
+    email.trim(),
     password
   );
+  const user = userCredential.user;
+  if (!user.emailVerified) {  
+    setMensaje("Verifica tu correo antes de iniciar sesión");
+    await signOut(auth);
+    return;
+  }
   console.log("Sesión iniciada:", userCredential.user.email);
-  setMensaje("Mi loco dele pa dentro");
+  setMensaje("Bienvenido");
   setTimeout(() => {
   setMensaje("");
 }, 1500);
@@ -556,13 +566,6 @@ return (
     >
       {nombre} {apellido}
     </Text>  
-    <View style={styles.tarjetaRacha}>
-      <MaterialCommunityIcons name="fire" size={35} color={racha > 0 ? "#ff5722" : "#A1A1A1" } />
-      <View style={{ marginLeft: 15 }}>
-          <Text style={styles.textoRachaValores}>{racha} días seguidos</Text>
-          <Text style={styles.textoRachaSubtitulo}> {racha > 0 ? "Ya eres todo un experto" : "Comienza tu racha hoy"}  </Text>
-        </View>
-    </View>
     
 
     <Pressable
@@ -764,10 +767,7 @@ return (
       onPress={handleLogin}
     >
       <Text
-        style={{
-          fontSize: 20,
-          fontWeight: "bold"
-        }}
+        style={styles.btnCrearCuentaText}
       >
         Entrar
       </Text>
@@ -781,10 +781,7 @@ return (
       onPress={() => setScreen("home")}
     >
       <Text
-        style={{
-          fontSize: 18,
-          fontWeight: "bold"
-        }}
+        style={styles.btnCrearCuentaText}
       >
         Regresar
       </Text>
@@ -796,130 +793,157 @@ return (
 
   </View>
 )}
+
 {screen === "dashboard" && (
   <ScrollView
-  style={{flex: 1}}
-  showsVerticalScrollIndicator={false}
-  contentContainerStyle={{ alignItems: "center", paddingTop: 60, paddingBottom: 40 }}>
-  <Text
-      style={{
-        fontSize: 28,
-        fontWeight: "bold",
-        marginBottom: 30
-      }}>
-        Bipedestador
-      </Text>
-    <TouchableOpacity
-    onPress={enviarMensajeEmergencia}
-    style={styles.btnemergencia}
+    style={styles.container}
+    showsVerticalScrollIndicator={false}
+    contentContainerStyle={styles.scrollContent}
   >
-    <Text
-      style={{
-        color: "white",
-        fontWeight: "bold",
-        fontSize: 16
-      }}
-    >
-      SOS
-    </Text>
-  </TouchableOpacity>
-  <Pressable //NUEVI POR SI LA CAGO
-    style={({pressed}) => [
-      styles.btndashboard,
-      pressed && styles.btndashboardPressed
-    ]}
-    onPress={async () => {
-      await cargarHistorial();
-      setScreen("Historial");
-    }}
-  >
-    <Text style={styles.btndashboardText}>
-      Historial de presión
-    </Text>
-  </Pressable>
-  <Pressable
-    style={({pressed}) => [
-      styles.btndashboard,
-      pressed && styles.btndashboardPressed
-    ]}
-    onPress={() => setScreen("VerDatos")}
-  >
-    <Text
-      style={styles.btndashboardText}
-    >
-      Datos generales
-    </Text>
-  </Pressable>
+    {/* HEADER DE BIENVENIDA */}
+    <View style={styles.headerContainer}>
+      <View>
+        <Text style={styles.welcomeText}>¡Hola, {nombre} 👋</Text>
+        <Text style={styles.subtitleText}>Bipedestador monitoreado</Text>
+      </View>
+      <View style={styles.avatarCircle}>
+        <MaterialCommunityIcons name="account" size={28} color="#4A5568" />
+      </View>
+    </View>
 
-  <Pressable
-    style={({pressed}) => [
-      styles.btndashboard,
-      pressed && styles.btndashboardPressed
-    ]}
-    onPress={() => setScreen("EditarDatos")}
-  >
-    <Text
-      style={styles.btndashboardText}
-    >
-      Editar tus datos 
-    </Text>
-  </Pressable>
+    {/* BANNER DE RACHA / GAMIFICACIÓN */}
+    <View style={styles.streakBanner}>
+      <View style={styles.streakLeft}>
+        <View style={styles.fireCircle}>
+          <MaterialCommunityIcons name="fire" size={32} color={racha > 0 ? "#FF9F43" : "#A1A1A1" } />
+        </View>
+        <View style={styles.streakTextContainer}>
+          <Text style={styles.streakTitle}>Racha actual</Text>
+          <Text style={styles.streakDays}>{racha} <Text style={styles.streakDaysSub}>días seguidos</Text></Text>
+          <Text style={styles.streakMotto}>{racha > 0 ? "¡Sigue así! 💪" : "Comienza tu racha hoy"} </Text>
+        </View>
+      </View>
+      <MaterialCommunityIcons name="star-circle" size={32} color="#FFFFFF" style={{ opacity: 0.8 }} />
+    </View>
 
-  <Pressable
-    style={({pressed}) => [
-      styles.btndashboard,
-      pressed && styles.btndashboardPressed
-    ]}
-    onPress={() => setScreen("Recordatorios")}
-  >
-    <Text
-      style={styles.btndashboardText}
+    {/* BOTÓN DE EMERGENCIA (SOS) */}
+    <Pressable
+      onPress={enviarMensajeEmergencia}
+      style={({ pressed }) => [
+        styles.btnEmergencia,
+        pressed && styles.btnEmergenciaPressed
+      ]}
     >
-      Recordatorios
-    </Text>
-  </Pressable>
-
-  <Pressable
-   style={({pressed}) => [
-      styles.btndashboard,
-      pressed && styles.btndashboardPressed
-    ]}
-    onPress={() => setScreen("Presion")}
-  >
-    <Text
-      style={styles.btndashboardText}
-    >
-      Presión arterial
-    </Text>
-  </Pressable>
-
-  <Pressable
-      style={({pressed}) => [
-      styles.btndashboard,
-      pressed && styles.btndashboardPressed
-    ]}
-      onPress={finalizarTerapia}
-    >
-      <Text style={styles.btndashboardText}>
-        Finalizar terapia 
-      </Text>
+      <View style={styles.sosLeftContainer}>
+        <View style={styles.bellCircle}>
+          <MaterialCommunityIcons name="bell-ring" size={24} color="#FF3B30" />
+        </View>
+        <View>
+          <Text style={styles.btnEmergenciaText}>Emergencia (SOS)</Text>
+          <Text style={styles.btnEmergenciaSub}>Contactar ayuda inmediata</Text>
+        </View>
+      </View>
+      <MaterialCommunityIcons name="chevron-right" size={24} color="#FFFFFF" />
     </Pressable>
 
-    <Pressable
-    style={({pressed}) => [
-      styles.btndashboard,
-      pressed && styles.btndashboardPressed
-    ]}
-    onPress={() => setScreen("welcome")}
-  >
-    <Text
-      style={styles.btndashboardText}
-    >
-      Volver
-    </Text>
-  </Pressable>
-  </ScrollView>
+    {/* GRID DE OPCIONES PRINCIPALES */}
+    <View style={styles.gridContainer}>
+      
+      {/* Tarjeta: Presión Arterial */}
+      <Pressable
+        style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+        onPress={() => setScreen("Presion")}
+      >
+        <View style={[styles.iconCircle, { backgroundColor: '#E3F2FD' }]}>
+          <MaterialCommunityIcons name="heart-pulse" size={26} color="#1E88E5" />
+        </View>
+        <Text style={styles.cardTitle}>Presión arterial</Text>
+        <Text style={styles.cardSub}>Medición actual y control</Text>
+      </Pressable>
 
+      {/* Tarjeta: Historial de Presión */}
+      <Pressable
+        style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+        onPress={async () => {
+          await cargarHistorial();
+          setScreen("Historial");
+        }}
+      >
+        <View style={[styles.iconCircle, { backgroundColor: '#E8EAF6' }]}>
+          <MaterialCommunityIcons name="chart-bar" size={26} color="#3F51B5" />
+        </View>
+        <Text style={styles.cardTitle}>Historial de presión</Text>
+        <Text style={styles.cardSub}>Ver registros y estadísticas</Text>
+      </Pressable>
+
+      {/* Tarjeta: Datos Generales */}
+      <Pressable
+        style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+        onPress={() => setScreen("VerDatos")}
+      >
+        <View style={[styles.iconCircle, { backgroundColor: '#E8F5E9' }]}>
+          <MaterialCommunityIcons name="account-details" size={26} color="#4CAF50" />
+        </View>
+        <Text style={styles.cardTitle}>Datos generales</Text>
+        <Text style={styles.cardSub}>Ver tu información personal</Text>
+      </Pressable>
+
+      {/* Tarjeta: Editar Tus Datos */}
+      <Pressable
+        style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+        onPress={() => setScreen("EditarDatos")}
+      >
+        <View style={[styles.iconCircle, { backgroundColor: '#FFF3E0' }]}>
+          <MaterialCommunityIcons name="pencil" size={26} color="#FF9800" />
+        </View>
+        <Text style={styles.cardTitle}>Editar tus datos</Text>
+        <Text style={styles.cardSub}>Actualizar tu información</Text>
+      </Pressable>
+
+      {/* Tarjeta: Recordatorios */}
+      <Pressable
+        style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+        onPress={() => setScreen("Recordatorios")}
+      >
+        <View style={[styles.iconCircle, { backgroundColor: '#EDE7F6' }]}>
+          <MaterialCommunityIcons name="clock-outline" size={26} color="#673AB7" />
+        </View>
+        <Text style={styles.cardTitle}>Recordatorios</Text>
+        <Text style={styles.cardSub}>Horarios de levantamiento</Text>
+      </Pressable>
+
+      {/* Tarjeta: Terapias */}
+      <Pressable
+        style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+        onPress={finalizarTerapia}
+      >
+        <View style={[styles.iconCircle, { backgroundColor: '#E0F7FA' }]}>
+          <FontAwesome5 name="bone" size={24} color="#00BCD4" />
+        </View>
+        <Text style={styles.cardTitle}>Terapias</Text>
+        <Text style={styles.cardSub}>Sesiones y rutinas actuales</Text>
+      </Pressable>
+
+    </View>
+
+    {/* MENSAJE DE REFUERZO DE SALUD */}
+    <View style={styles.footerBanner}>
+      <MaterialCommunityIcons name="shield-check" size={24} color="#5C6BC0" />
+      <View style={styles.footerBannerTextContainer}>
+        <Text style={styles.footerBannerTitle}>Tu salud es nuestra prioridad</Text>
+        <Text style={styles.footerBannerSub}>Sigue tu terapia y mejora cada día</Text>
+      </View>
+    </View>
+
+    {/* BOTÓN VOLVER SUTIL */}
+    <Pressable
+      style={styles.btnVolver}
+      onPress={() => setScreen("welcome")}
+    >
+      <Text style={styles.btnVolverText}>Volver al inicio</Text>
+    </Pressable>
+
+  </ScrollView>
 )}
 {screen === "EditarDatos" && (
    <View
@@ -1267,7 +1291,7 @@ return (
           }}
           onPress={async () => {
             try {
-              await fetch("http://192.168.100.15/servo?angulo=0");
+              await fetch("http://172.20.10.7/servo?angulo=0");
             } catch (error) {
               Alert.alert(
                 "Error",
@@ -1293,7 +1317,7 @@ return (
           }}
           onPress={async () => {
             try {
-              await fetch("http://192.168.100.15/servo?angulo=35");
+              await fetch("http://172.20.10.7/servo?angulo=35");
             } catch (error) {
               Alert.alert(
                 "Error",
@@ -1319,7 +1343,7 @@ return (
           }}
           onPress={async () => {
             try {
-              await fetch("http://192.168.100.15/servo?angulo=70");
+              await fetch("http://172.20.10.7/servo?angulo=70");
             } catch (error) {
               Alert.alert(
                 "Error",
@@ -1375,7 +1399,7 @@ return (
           }}
           onPress={async () => {
           try {
-            await fetch("http://192.168.100.15/auto");
+            await fetch("http://172.20.10.7/auto");
           } catch (error) {
             Alert.alert(
               "Error",
@@ -1402,7 +1426,7 @@ return (
           onPress={async () => {
           try {
 
-            await fetch("http://192.168.100.15/manual");
+            await fetch("http://172.20.10.7/manual");
 
           } catch (error) {
 
@@ -1579,7 +1603,7 @@ return (
         }}
         onPress={async () => {
           try {
-            await fetch("http://192.168.100.15/terapia1");
+            await fetch("http://172.20.10.7/terapia1");
             Alert.alert(
               "Terapia",
               "Terapia predeterminada iniciada"
@@ -1775,7 +1799,7 @@ return (
               }
               try {
                 await fetch(
-                  `http://192.168.100.15/terapiaPersonalizada?g1=${g1}&t1=${t1}&g2=${g2}&t2=${t2}&g3=${g3}&t3=${t3}`
+                  `http://172.20.10.7/terapiaPersonalizada?g1=${g1}&t1=${t1}&g2=${g2}&t2=${t2}&g3=${g3}&t3=${t3}`
                 );
                 Alert.alert(
                   "Terapia",
